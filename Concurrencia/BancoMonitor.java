@@ -59,7 +59,7 @@ public class BancoMonitor implements Banco  {
 				if((cuentas.containsKey(bloq.ori)) && 
 						(cuentas.containsKey(bloq.dest)) && 
 						(cuentas.get(bloq.ori) >= bloq.cant) &&
-						bloq.c.waiting() > 0 && (!tieneCuentaBloq(transfRd,bloq.ori) && !bloqlist.isEmpty())) { //  cuenta de origen y detino existen +  origen tiene saldo suficiente -> desbloqueo + 
+						bloq.c.waiting() > 0 && (!tieneCuenta(TransfBlock, bloq.ori) && !tieneCuentaBloq(transf, bloq.ori))) { //  cuenta de origen y detino existen +  origen tiene saldo suficiente -> desbloqueo + 
 					transfRd.add(bloq); 											   // anado a la lista de bloqueos leidos + !signaled + elimino la entrada
 					signaled = !signaled;				
 					bloqlist.remove(j);
@@ -183,7 +183,7 @@ public class BancoMonitor implements Banco  {
 		//		if(!cuentas.containsKey(d)) cuentas.put(d,-1);			// si la cuenta no esxiste la introducimos en la lista de cuentas (la creamos)
 
 		bloqueoTransf bt =  new bloqueoTransf(o, d, v);
-		if(!cuentas.containsKey(o) || !cuentas.containsKey(d) || cuentas.get(o) < v || tieneCuenta(TransfBlock, o)){
+		if(!cuentas.containsKey(o) || !cuentas.containsKey(d) || cuentas.get(o) < v || (tieneCuenta(TransfBlock, o) && tieneCuentaBloq(transf, o))){
 			transf.add(bt);
 			TransfBlock.put(o, transf);	//lo anado al mapa de transferencias bloqueadas hasta que se pueda realizar
 			//transferencia anadida a la cola de transferencias -> espera a desbloqueo 	
