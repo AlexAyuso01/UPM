@@ -9,7 +9,7 @@ import java.util.Map;
 public class BancoMonitor implements Banco  {
 
 	private Map<String,Integer> cuentas;
-	private Map<String,cuenta> TransfBlock;
+	private Map<String,LinkedList<bloqueoTransf>> TransfBlock;
 	private LinkedList<bloqueoTransf> transf;
 	private LinkedList<bloqueoAlerta> AlertarBlock; 
 	private Monitor mutex;
@@ -42,36 +42,24 @@ public class BancoMonitor implements Banco  {
 		}
 
 	}
-	public class cuenta {
-		public String id;
-		public int saldo;
-		
-		
-		public cuenta(String id, int saldo) {
-			this.id = id;
-			this.saldo = saldo;
-			transf = new LinkedList<bloqueoTransf>();
-		}
-		
-	}
 	private void desbloqueo_General() {
 		boolean signaled = false;
 		LinkedList<bloqueoTransf> transfRd = new LinkedList<bloqueoTransf>();
 
 		//primera parte del desbloqueo generico: recorre la lista de transferencias bloqueadas
-		for(Map.Entry<String,cuenta> entry : TransfBlock.entrySet()) {
+		for(Map.Entry<String,LinkedList<bloqueoTransf>> entry : TransfBlock.entrySet()) {
 			
-			cuenta transfblock = entry.getValue();	// guardamos: la primera entrada de la lista + saldo origen + saldo destino
+			LinkedList<bloqueoTransf> bloqlist = entry.getValue();	// guardamos: la primera entrada de la lista + saldo origen + saldo destino
 
-			for(int j = 0; j < transfblock. && !signaled;j++){	// recorro la lista de bloqueos que corresponden a esa cuenta
+			for(int j = 0; j < bloqlist.size() && !signaled;j++){	// recorro la lista de bloqueos que corresponden a esa cuenta
 				bloqueoTransf bloq = bloqlist.get(j);				// guardamos la primera entrada
+
 				//				Integer saldoO =cuentas.get(bloq.ori);
 				//				Integer saldoD =cuentas.get(bloq.dest);
 				if((cuentas.containsKey(bloq.ori)) && 
 						(cuentas.containsKey(bloq.dest)) && 
 						(cuentas.get(bloq.ori) >= bloq.cant) &&
-						bloq.c.waiting() > 0 && 
-						(!tieneCuentaBloq(transfRd,bloq.ori) && bloqlist.isEmpty())) { //  cuenta de origen y detino existen +  origen tiene saldo suficiente -> desbloqueo + 
+						bloq.c.waiting() > 0 && (!tieneCuentaBloq(transfRd,bloq.ori) && !bloqlist.isEmpty())) { //  cuenta de origen y detino existen +  origen tiene saldo suficiente -> desbloqueo + 
 					transfRd.add(bloq); 											   // anado a la lista de bloqueos leidos + !signaled + elimino la entrada
 					signaled = !signaled;				
 					bloqlist.remove(j);
@@ -140,6 +128,7 @@ public class BancoMonitor implements Banco  {
 
 	public BancoMonitor() {
 		this.cuentas = new HashMap<String, Integer>();
+		transf = new LinkedList<bloqueoTransf>();
 		AlertarBlock = new LinkedList<bloqueoAlerta>();
 		TransfBlock = new HashMap<>();
 		this.mutex = new Monitor();
