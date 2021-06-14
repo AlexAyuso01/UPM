@@ -30,6 +30,9 @@ public class BancoCSP implements Banco, CSProcess {
 	private Any2OneChannel chTransferir;
 	private Any2OneChannel chAlertar; 
 	Map<String, Integer> cuentas;
+	//TADs para peticiones que se han aplazado y por tratar
+	LinkedList<TransferirReq> TransfBlock;
+	LinkedList<AlertarReq> AlertarBlock;
 
 	// clases para peticiones
 	// regalamos una como ejemplo
@@ -90,14 +93,19 @@ public class BancoCSP implements Banco, CSProcess {
 		this.chTransferir = Channel.any2one();
 		new ProcessManager(this).start();
 		cuentas = new HashMap<String, Integer>();
+		TransfBlock = new LinkedList<TransferirReq>();
+		AlertarBlock = new LinkedList<AlertarReq>();
 	}
 
 
 	public void ingresar(String c, int v) {
-
 		//Creacion de confirmacion + envio por canal correspondiente
 		IngresarReq peticion = new IngresarReq(c, v);
 		chIngresar.out().write(peticion);
+		//Esperar confirmacion
+		chIngresar.in().read();
+		peticion.resp.in().read();
+
 	}
 
 
@@ -162,9 +170,7 @@ public class BancoCSP implements Banco, CSProcess {
 		guards[ALERTAR]    = chAlertar.in();
 		Alternative servicios = new Alternative(guards);
 
-		//TADs para peticiones que se han aplazado y por tratar
-		LinkedList<TransferirReq> TransfBlock= new LinkedList<TransferirReq>();
-		LinkedList<AlertarReq> AlertarBlock= new LinkedList<AlertarReq>();
+
 
 		// Bucle principal del servicio
 		while(true) {
@@ -183,6 +189,7 @@ public class BancoCSP implements Banco, CSProcess {
 					//Cumple CPPRE -> saldo+=cantidad a ingresar
 					cuentas.put(pet.cuenta,pet.cantidad + cuentas.get(pet.cuenta));
 				}
+				desbloqueoGeneral();
 				break;
 			}
 			case DISPONIBLE: {
@@ -201,22 +208,22 @@ public class BancoCSP implements Banco, CSProcess {
 			case TRANSFERIR: {
 				TransferirReq pet = (TransferirReq) chTransferir.in().read();
 
-				if(!cuentas.containsKey(pet.from)) cuentas.put(pet.from,-1);			// si la cuenta no esxiste la introducimos en la lista de cuentas (la creamos)
-				if(!cuentas.containsKey(pet.to)) cuentas.put(pet.to,-1);			    // si la cuenta no esxiste la introducimos en la lista de cuentas (la creamos)
-				
-				if ( cuentas.get(pet.from) < pet.value || cuentas.get(pet.to)== -1) {
+
+
+				if (!cuentas.containsKey(pet.from) || !cuentas.containsKey(pet.to) || cuentas.get(pet.from) < pet.value) {
 					TransfBlock.add(pet);
 				}
-				
+				else {
+
 					int saldoO = cuentas.get(pet.from);
 					int saldoD = cuentas.get(pet.to);
 					cuentas.put(pet.from,saldoO - pet.value);
 					cuentas.put(pet.to,saldoD + pet.value);
 					//Notifico transferencia
 					pet.resp.out().write(null);
-					desbloqueoGeneral(TransfBlock); //desbloqueo de transferencias
-					desbloqueoGeneral(AlertarBlock); // desbloqueo de Alertas
-				break;
+					desbloqueoGeneral(); //desbloqueo de transferencias
+					break;
+				}
 			}
 			case ALERTAR: {
 				AlertarReq peticion = (AlertarReq) chAlertar.in().read();
@@ -231,66 +238,62 @@ public class BancoCSP implements Banco, CSProcess {
 			}//Fin switch 
 
 			//Tratamiento de peticiones aplazadas si es posible
-			desbloqueoGeneral(TransfBlock);
+			desbloqueoGeneral();
 			//desbloqueoGeneral(AlertarBlock); // ????
 
 		}
 	}
 
 
-	private <E> void desbloqueoGeneral(LinkedList<E> block) {
+	private  void desbloqueoGeneral() {
 		boolean signaled = false;
-		/*
-		 * Que tengo que comprobar???
-		 * 	1 Que la cuenta o y destino existan 
-		 *  2 Que la lista de alertas de transferencias no este vacia 
-		 *  3 Que exista la cuenta de destino 
-		 *  4 que el sando de la cuenta de origen sea > que la cantidada a transferir
-		 */
-		//primera parte del desbloqueo generico: recorre la lista de transferencias bloqueadas
-		if (block.peek() instanceof TransferirReq) { 
-			TransferirReq peticion = (TransferirReq) block.peek();
-			int nt = block.size();
-			for(int i = 0; i <= nt && !signaled; i++) {
-				Integer saldoO =cuentas.get(peticion.from);
-				Integer saldoD =cuentas.get(peticion.to);
-				if(!block.isEmpty()) {
-					if(saldoO!=null && saldoO!=-1) {
-						if(cuentas.containsKey(peticion.to) && saldoD != -1) {
-							if(cuentas.get(peticion.from) >= peticion.value) {
-								peticion.resp.out().write(null);
-								block.poll();
-								signaled = true;
-							}
-						}
-					}
-				}
+		LinkedList<String> transfRd = new LinkedList<String>();
+		int nt = TransfBlock.size();	
+		for(int i = 0; i < nt; i++) {
+			TransferirReq bt = TransfBlock.get(i);
+			int SaldoO = cuentas.get(bt.from);
+			int SaldoD = cuentas.get(bt.to);
+			if(cuentas.containsKey(bt.from) && cuentas.containsKey(bt.to) && SaldoO >= bt.value && !tieneCuenta(transfRd,bt.from)) {
+				cuentas.put(bt.from, SaldoO - bt.value);
+				cuentas.put(bt.to, SaldoD + bt.value);
+
+				TransfBlock.remove(i).resp.out().write(null);
+				transfRd = new LinkedList<String>();
+
+				i = -1;
+				nt--;
+			}
+			else if(!tieneCuenta(transfRd, bt.from)) {
+				transfRd.addLast(bt.from);
 			}
 		}
+		int na = AlertarBlock.size();
 
-		//Segunda parte de desbloque generico: 
-		if (block.peek() instanceof AlertarReq) { 
-			signaled = false;
-			int na = block.size();
-			//Recorre cola de alertas, si la que coje cumpple desbloquea
-			for(int i = 0; i < na && !signaled; i++ ) {
-				AlertarReq peticion =(AlertarReq) block.peek();
-				//CPRE: saldo cuenta < minimo
-				if(cuentas.get(peticion.cuenta) < peticion.minimo) {
-					//Alerta fuera de cola + salgo de bucle (regla 0/1) + signal para dicha alerta
-					block.poll();
-					peticion.resp.out().write(null);
-					signaled = true;
-				}
-				//No cumple CPRE -> reencolo
-				else {
-					block.poll();
-					LinkedList<AlertarReq> block2 = (LinkedList<AlertarReq>) block;
-					block2.add(peticion);
-				}
-			}	
+		for(int i = 0; i < na;i++) {
+			AlertarReq ba = AlertarBlock.get(i);
+			int SaldoO = cuentas.get(ba.cuenta);
+			if(SaldoO < ba.minimo) {
+				AlertarBlock.remove(i).resp.out().write(null);
+				i--;
+				na--;
+			}
 		}
 	}
+
+
+	private boolean tieneCuenta(LinkedList<String> t, String from) {
+		boolean signaled = false;
+		for(int i = 0; i < t.size() && !signaled; i++ ) {
+			if(t.get(i).equals(from)) {
+				signaled = !signaled;
+			}
+		}
+		return signaled;
+	}
+
 }
+
+
+
 
 
