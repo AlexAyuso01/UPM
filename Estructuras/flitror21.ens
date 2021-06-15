@@ -226,6 +226,19 @@ res     24
 data    0x55555555, 0x55555555
 NCAMBIOS: data 400
 MAXFILTRADOS: data 4
+
+;--------------------------------------------------------------
+
+;    r1 : Reservada para almacenar la direccion de retorno.
+;    r2 y r3 los tomamos como reservados, para cosas que sean absolutamente necesarias y que no se puedan modificar mas tarde. Me parece adecuado tener un par de registros exclusivamente dedicados a esto. Suelen ser usadas en MACROs.
+;    r4 a r10 - {r7, r8, r9} + {r17,r18,r19} : Uso general para variables
+;    r11 a r16 : Aritmetica
+;    r7, r8, r9 : Logica (Para comparaciones)
+;    r20 a r24 : Registros de los argumentos y parametros de las funciones.
+;    r25 a r28 : Auxiliares, se pueden usar en caso de que se necesiten registros adicionales.
+;    r29 : Para almacenar el valor de retorno.
+;    r30, r31 : Reservadas para Pila.
+
 ;--------------------------------------------------------------
 PPALnfiltrados: 	LEA (r30,86012)         ; inicializar puntero de pila
                     addu r20, r0, 5         ; oper
@@ -416,13 +429,13 @@ Comp:               PUSH(r1)
                     or r22, r0, 0            ;inicializo mi contador (=1 porque los punteros ya empiezan en la primera posición)
                     or r23, r0, r0            ;inicializo mi condición de bucle 
                     ;empezamos en 8 por cambios en la pila
-                    ld r10, r31, 8                ;Puntero Img1
-                    ld r11, r31, 12                ;Puntero Img2
+                    ld r10, r31, 8                ; Img1
+                    ld r11, r31, 12                ; Img2
                     
                     ;condiciones iniciales del bucle
                     ;cargo desde r10 N y N
-                    ld r25, r10, 4                ;guardo M de  la imagen más cercana al SP (suponiendo que sean iguales en tamano)
-                    ld r26, r10, 0                ;guardo N de la imagen más cercana al SP
+                    ld r25, r10, 4                ;guardo M de  la imagen más cercana al SP (suponiendo que sean iguales en tamano) -> columnas
+                    ld r26, r10, 0                ;guardo N de la imagen más cercana al SP -> filas
                     ;desplazo punteros hasta sus posiciones de inicio
 					
 					addu r10, r10, 8
@@ -431,11 +444,11 @@ Comp:               PUSH(r1)
                     mulu r23, r25, r26            ;r23 ahora guarda el valor límite de iteraciones que debe hacer el bucle para haber recorrido una imagen
                     
 					
-WhileDif:           cmp r7, r22, r23            
+WhileDif:           cmp r7, r22, r23     		  ; contador == elem de la imagen?       
                     bb1 eq, r7, finComp
 
-                    ld.bu r19, r11, r22
-                    ld.bu r18, r10, r22
+                    ld.bu r19, r11, r0
+                    ld.bu r18, r10, r0
                     
                     subu r21, r18, r19            ;p1-p2
                     mulu r21, r21, r21            ;(p1-p2)^2
@@ -445,7 +458,8 @@ WhileDif:           cmp r7, r22, r23
                     bb1 eq, r7, finComp
 					
                     addu r22, r22, 1            ;avanzo mi contador
-					
+					addu r10, r10, 1			;im1 ++ 
+					addu r11, r11, 1			;im2 ++
                     br WhileDif
                     
 finComp:            PUSH(r20)
@@ -456,6 +470,65 @@ Poppy:              POP(r20)
 					POP(r1)
                     jmp(r1)
 				
+;--------------------------------------------------------------
+;Necesito registros para, i, j,  puntero imagen, contador i, contador j
+;contador de bucle, puntero de subimagen
+;ld.bu=> reg elemento;; st puntero SubImg, reg elemto
+
+	
+SubMatriz:			PUSH(r1)
+					PUSH(r31)
+					or r31, r30, r30
+					
+					ld r19, r31, 8				; puntero de imagen
+					ld r18, r19, 4				; M -> columnas
+												 		
+					ld r21, r31, 12				; Puntero SubImg
+					ld r22, r31, 16				; I
+					subu r22, r22, 1			; I = I - 1
+					ld r23, r31, 20				; J
+					subu r23, r23, 1			; J	= J - 1
+					
+					;Con inic bucle
+					or r24, r22, r22			; I-1
+					mulu r24, r24, r18			;(I-1)*M
+					addu r24, r24, r23			;(I-1)*M+(J-1) desp a i-1,j-1
+					
+					
+					addu r19, r19, 8			; Puntero 1er elto Img
+					;addu r19, r19, r24			; r19 <- r19+desp
+					subu r27, r18, 2			; M - 2
+					;contadores a 0
+					or r16, r0, 0				;contador de filas
+					or r15, r0, 0				;cotador de elementos
+					;comienza el bucle
+					
+WhileSubM:			cmp r7, r16, 3				
+					bb0 eq, r7, FilaSubM
+					
+IncrementoF: 		addu r19, r19, r27			; siguiente fila
+					or r16,r0, 0				; reseteo
+					br WhileSubM					
+
+FilaSubM:			cmp r8, r15, 9
+					bb1 eq, r8, finSubM	 
+					
+					ld.bu r17, r19, r24			
+					st.b r17, r21, r15			;guardamos el valor r17 en la dirección del r21 (puntero submimg)
+					addu r16, r16, 1			;contador columna
+					addu r15, r15, 1			;contador número elementos copiados
+					
+					cmp r7, r16, 3				
+					bb1 eq, r7, IncrementoF 
+		
+					addu r24, r24, 1			;avanzamos el puntero 
+					br WhileSubM				
+				
+finSubM:			or r30, r31, r31
+					POP(r31)
+					POP(r1)
+					jmp(r1)
+
 ;--------------------------------------------------------------
 ;organizado de datos en pila:
 ;filpixel(Imagen,i,j,MFiltro)
@@ -479,17 +552,17 @@ FilPixel:			PUSH(r1)
 					;addu r27, r27, 8			;apunta al principio de la imagen --CHECKED
 					
 					;BORDE DE LA IMAGEN
-esBorde:			cmp r14, r21, 0
-					bb1 eq, r14, pixelborde
+esBorde:			cmp r7, r21, 0
+					bb1 eq, r7, pixelborde
 					
-					cmp r14, r21, r24
-					bb1 eq, r14, pixelborde
+					cmp r7, r21, r24
+					bb1 eq, r7, pixelborde
 					
-					cmp r14, r22, 0
-					bb1 eq, r14, pixelborde
+					cmp r7, r22, 0
+					bb1 eq, r7, pixelborde
 					
-					cmp r14, r22, r25
-					bb1 eq, r14, pixelborde
+					cmp r7, r22, r25
+					bb1 eq, r7, pixelborde
 					
 					;M y N vuelta a valores normales
 					addu r24, r24, 1			;M
@@ -519,16 +592,16 @@ bsrvp:				bsr ValorPixel				;llamamos a valor pixel con los valores recien intro
 					POP(r28)
 					POP(r2)				
 					
-pixel:				cmp r14, r29, 0				;comparamos r29 con 0
-					bb1 lt, r14, putZero		;r29 < 0 -> pone r29 a 0
-					cmp r14, r29, 255			;comparamos r29 con 255
-					bb1 gt, r14, put255			;r29 > 255 -> pone r29 a 255
+pixel:				cmp r7, r29, 0				;comparamos r29 con 0
+					bb1 lt, r7, putZero		;r29 < 0 -> pone r29 a 0
+					cmp r7, r29, 255			;comparamos r29 con 255
+					bb1 gt, r7, put255			;r29 > 255 -> pone r29 a 255
 					br finFP
 
-pixelborde:			mulu r8, r21, r24			;i*(m-1)+j== desplazamiento hasta pixel
-					addu r8, r8, r22			;nos desplazamos hasta el píxel y lo cargamos en r29
+pixelborde:			mulu r18, r21, r24			;i*(m-1)+j== desplazamiento hasta pixel
+					addu r18, r18, r22			;nos desplazamos hasta el píxel y lo cargamos en r29
 					addu r27, r27, 8			; puntero imagen apunta al 1er elemento
-					ld.bu r29, r8, r27			;lo cargamos
+					ld.bu r29, r18, r27			;lo cargamos
 					br finFP					;enviamos directamente a fin sin ajustar valor
 
 putZero:			or r29, r0, 0				;r29 = 0
@@ -605,63 +678,6 @@ FinFiltro:			or r30, r31, r31
 					POP(r1)
 					jmp(r1)		
 
-;--------------------------------------------------------------
-;Necesito registros para, i, j,  puntero imagen, contador i, contador j
-;contador de bucle, puntero de subimagen
-;ld.bu=> reg elemento;; st puntero SubImg, reg elemto
-
-	
-SubMatriz:			PUSH(r1)
-					PUSH(r31)
-					or r31, r30, r30
-					ld r19, r31, 8				; puntero de imagen
-					ld r18, r19, 0				; M
-												 		
-					ld r21, r31, 12				; Puntero SubImg
-					ld r22, r31, 16				; I
-					subu r22, r22, 1			; I = I - 1
-					ld r23, r31, 20				; J
-					subu r23, r23, 1			; J	= J - 1
-					
-					;Con inic bucle
-					or r24, r22, r22			; I-1
-					mulu r24, r24, r18			;(I-1)*M
-					addu r24, r24, r23			;(I-1)*M+(J-1)
-					
-					
-					addu r19, r19, 8			; Puntero 1er elto Img
-					addu r19, r19, r24			; r19 <- r19+desp
-					subu r27, r18, 2			; M - 2
-					;contadores a 0
-					or r16, r0, 0				;columnas
-					or r15, r0, 0				;elementos
-					;comienza el bucle
-					
-WhileSubM:			cmp r28, r16, 3				
-					bb0 eq, r28, FilaSubM
-					
-IncrementoF: 		addu r19, r19, r27			; siguiente fila
-					or r16,r0, 0				; reseteo
-					br WhileSubM					
-
-FilaSubM:			cmp r12, r15, 9
-					bb1 eq, r12, finSubM	 
-					
-					ld.bu r17, r19, 0			;cargamos el dato del puntero r20 al registro r21		
-					st.b r17, r21, r15			;guardamos el valor r17 en la dirección del r21 (puntero submimg)
-					addu r16, r16, 1			;contador columna
-					addu r15, r15, 1			;contador número elementos copiados
-					
-					cmp r28, r16, 3				
-					bb1 eq, r28, IncrementoF 
-		
-					addu r19, r19, 1			;avanzamos el puntero 
-					br WhileSubM				
-				
-finSubM:			or r30, r31, r31
-					POP(r31)
-					POP(r1)
-					jmp(r1)
 
 ;--------------------------------------------------------------
 
@@ -680,7 +696,7 @@ FiltRec:			PUSH(r1)
 					divs r15, r15, r5
 					muls r15, r15, r5			; redondeo
 					
-					or r9, r0, r0
+					or r19, r0, r0
 					or r2, r0, 8
 					subu r30, r30, 12			; Reserva de espacio ImagenTmp
 					
@@ -697,11 +713,11 @@ FiltRec:			PUSH(r1)
 					POP(r23)
 					
 					ld r22, r31, 12				; ImagenOut	
-					cmp r14, r9, r10
-					bb0 lt, r14, bucleFiltRec
+					cmp r7, r19, r10
+					bb0 lt, r7, bucleFiltRec
 					ld r17, r22, 8
 					st r17, r22, 8
-					addu r9, r9, 4
+					addu r19, r19, 4
 					addu r2, r2, 4
 				
 					
@@ -770,13 +786,13 @@ ValorPixel: 		PUSH(r1)
 					or r31, r30, r30
 					ld r10, r31, 8				; Puntero SubImg
 					ld r11, r31, 12				; Puntero MFlitro
-					or r29, r0, 0				; Inicializa acumulador a 0
+					or r12, r0, 0				; Inicializa acumulador a 0
 					addu r13, r0, 9				; elementos de las matrices
 					or r17, r0, 256				; constante 256
 					or r19, r0, 0
-					or r21, r0, r0				; constante 0
+					or r21, r0, r0				; contador = 0
 					
-WhileVP:			cmp r7, r13, r21			; caso cierre de bucle
+WhileVP:			cmp r7, r21, r13			; caso cierre de bucle
 					bb1 eq, r7, finVP			; se va pal fin
 					
 					ld.bu r4, r10, 0			; elemento SubImg
@@ -788,19 +804,17 @@ WhileVP:			cmp r7, r13, r21			; caso cierre de bucle
 					muls r15, r4, r17			; elemento SubImg * 256
 					muls r15, r15, r5			; (anterior)*NumeradorFiltro
 					divs r15, r15, r6			; (anterior)/DenominadorFiltro
-					add r19, r19, r15			; ACC = ACC + r15
-					
-					cmp r7, r13, r21			; caso cierre de bucle
-					bb1 eq, r7, finVP			; se va pal fin
-					
-VPNext:				addu r10, r10, 1			; siguiente elemento de SubImg
+					add r12, r12, r15			; ACC = ACC + r15					
+					addu r10, r10, 1			; siguiente elemento de SubImg
 					addu r11, r11, 8			; siguiente elemento de MFiltro
 					addu r21, r21, 1			; contador = contador+1
 					
+					cmp r7, r21, r13			; caso cierre de bucle
+					bb1 eq, r7, finVP			; se va pal fin
+					
 					br WhileVP					; inicio del while
 					
-finVP: 				divs r19, r19, r17
-					or r29, r19, r0
+finVP: 				divs r29, r12, r17
 					or r30, r31, r31
 					POP(r31)
 					POP(r1)
