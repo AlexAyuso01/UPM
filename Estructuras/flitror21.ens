@@ -538,20 +538,20 @@ finSubM:			or r30, r31, r31
 FilPixel:			PUSH(r1)
 					PUSH(r31)
 					or r31, r30, r30
-					ld r27, r31, 8				;referencia a imagen --CHECKED
-					;or r15, r27, r0			;copia de la referencia de la imagen 
+					ld r27, r31, 8				;puntero a imagen --CHECKED
+					or r15, r27, r0				;copia del puntero de la imagen 
 					ld r2, r31, 20				;filtro 
 					ld r21, r31, 12				;i 
 					ld r22, r31, 16				;j
-					
-					ld r24, r27, 0				;M
-					ld r25, r27, 4				;N
-					or r26, r25, r0				;copia M --UTIL??
+					;valores de la imagen
+					ld r24, r27, 0				;M -> filas ()
+					ld r25, r27, 4				;N -> columnas
+					or r26, r25, r0				;copia columnas
 					subu r24, r24, 1			;M-1
 					subu r25, r25, 1			;N-1
-					;addu r27, r27, 8			;apunta al principio de la imagen --CHECKED
+					addu r27, r27, 8			;apunta al principio de la imagen --CHECKED
 					
-					;BORDE DE LA IMAGEN
+					;BORDE DE LA IMAGEN?
 esBorde:			cmp r7, r21, 0
 					bb1 eq, r7, pixelborde
 					
@@ -569,7 +569,7 @@ esBorde:			cmp r7, r21, 0
 					addu r25, r25, 1			;N
 					
 					;LLAMADA A SUBMATRIZ
-presubm:			subu r30, r30, 12			;espacio reservado para la matriz
+presubm:			subu r30, r30, 12			;espacio reservado para la matriz(3x3)
 					or r28, r30, r30			;futura subimagen
 					PUSH(r22)					;introducimos j en la pila 
 					PUSH(r21)					;introducimos i en la pila 
@@ -592,15 +592,16 @@ bsrvp:				bsr ValorPixel				;llamamos a valor pixel con los valores recien intro
 					POP(r28)
 					POP(r2)				
 					
+					addu r30, r30, 12			;quitamos sub imagen de pila
+					
 pixel:				cmp r7, r29, 0				;comparamos r29 con 0
 					bb1 lt, r7, putZero		;r29 < 0 -> pone r29 a 0
 					cmp r7, r29, 255			;comparamos r29 con 255
 					bb1 gt, r7, put255			;r29 > 255 -> pone r29 a 255
 					br finFP
 
-pixelborde:			mulu r18, r21, r24			;i*(m-1)+j== desplazamiento hasta pixel
+pixelborde:			mulu r18, r26, r21			;i*(m-1)+j== desplazamiento hasta pixel
 					addu r18, r18, r22			;nos desplazamos hasta el píxel y lo cargamos en r29
-					addu r27, r27, 8			; puntero imagen apunta al 1er elemento
 					ld.bu r29, r18, r27			;lo cargamos
 					br finFP					;enviamos directamente a fin sin ajustar valor
 
