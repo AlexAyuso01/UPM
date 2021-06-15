@@ -1,66 +1,68 @@
-#!  /usr/bin/bash
+ #! /bin/bash
 
-#COMPRUEBO QUE SE LLAMA A UN FICHERO CON UN UNICO ARGUMENTO
-if [ $# -ne 1 ]
-    then
-        echo "minientrega.sh: Error(EX_USAGE), uso incorrecto del mandato. \"Success\" " 1>&2
-        echo "minientrega.sh+ Número de argumentos incorrecto " 1>&2
-        exit 64
-else
-#COMPRUEBO QUE SE REALIZA LA SOLICITUD DE AYUDA
-    if [ $1 == "-h" ] || [ $1 == "--help" ]
 
-        then
-            echo "minientrega.sh: Uso: $0 {nombre_archivo} o -h|--help para la ayuda"
-            echo "minientrega.sh: Copia ficheros a entregar de un directorio a otro de entrega"
-            exit 0
-    fi
+# FICHERO CON UN SOLO ARGUMENTO
+if [ $# -ne 1 ]; then
+    echo "minientrega.sh: Error(EX_USAGE), uso incorrecto del mandato. "Success"" 1>&2
+    echo "minientrega.sh: <<descripción detallada del error>>" 1>&2
+    exit 64
 fi
 
-#COMPRUEBO SI EL DIRECTORIO ES VALIDO
-if [ ! -d $MINIENTREGA_CONF ]
-    then
-        echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
-        echo "minientrega.sh+ no es accesible el directorio \"$MINIENTREGA_CONF\"" 1>&2
-        exit 64
+# HELP 
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+    echo "minientrega.sh: Uso: minientrega.sh ID_PRACTICA"
+    echo "minientrega.sh: copia una practica en un directorio de entrega"
+    exit 0
+fi 
+
+# DIRECTORIO BUENO??  
+
+if [[ ! -d $MINIENTREGA_CONF ]]; then 
+    echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
+    echo "minientrega.sh+ no es accesible el directorio \""$MINIENTREGA_CONF"\"" 1>&2 
+    exit 64
 fi
 
-#EL ARCHIVO ES VALIDO??
+# COMPROBAMOS VALIDEZ DEL ARCHIVO
 ID_PRACTICA="$MINIENTREGA_CONF/$1"
 
-if [ ! -f $ID_PRACTICA ]
-    then
+if [[ ! -f $ID_PRACTICA ]]; then
     echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
     echo "minientrega.sh+ no es accesible el fichero \"$1\"" 1>&2
-    exit 66
+    exit 64
 fi
 
-#VARIABLE DEL ARCHIVO
+# CARGAMOS VARIABLE
 source $ID_PRACTICA
 
-#BUCLE PARA VER SI EL FICHERO ES VALIDO
-for FICHERO in ${MINIENTREGA_FICHEROS}; do
-        if [ ! -r "$FICHERO" ]
-            then
-                echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
-                echo "minientrega.sh+ no es accesible el fichero \"$MINIENTREGA_FICHEROS\"" 1>&2
-                exit 66
-        fi
+# ARCHIVOS.... 
+
+# BUCLE VE VALIDEZ DE ARCHIVOS
+
+for FILE in $MINIENTREGA_FICHEROS; do
+    if [ ! -r $FILE ]; then
+        echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
+        echo "minientrega.sh+ no es accesible el fichero "$FILE"" 1>&2
+        exit 66
+    fi
 done
 
-ID_PRACTICA="$MINIENTREGA_DESTINO/${USER}"
+FICHERO="$MINIENTREGA_DESTINO/${USER}"
 
-#ENTREGA
-if [ ! -d $MINIENTREGA_DESTINO ] || mkdir -p "$ID_PRACTICA/${USER}" >/dev/null 2>&1
-    then
-        echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
-        echo "minientrega.sh+ no se pudo crear el subdirectorio de entrega en \"$MINIENTREGA_DESTINO\"" 1>&2
-        exit 73
+# HACEMOS LA ENTREGA
+
+if [ ! -d $MINIENTREGA_DESTINO ] || ! mkdir -p "$FICHERO" >/dev/null 2>&1 ; then
+    echo "minientrega.sh: Error, no se pudo realizar la entrega" 1>&2
+    echo "minientrega.sh+ no se pudo crear el subdirectorio de entrega en "$MINIENTREGA_DESTINO"" 1>&2
+    exit 73
 fi
 
-#COPIA D ELOS ARCHIVOS AL DIRECTORIO CORRECTO
+# METEMOS LOS ARCHIVOS EN SU DIRECTORIO
 for FILE in $MINIENTREGA_FICHEROS; do
- cp $FILE "${ID_PRACTICA}/${USER}"
+    cp $FILE "$FICHERO"
 done
-#TERMINACION CORRECTA
+
+#SI SE LLEGA AQUI -> TODO OK -> SALIDA 0
 exit 0
+
+####FIN####
