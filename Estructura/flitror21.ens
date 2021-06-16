@@ -5,32 +5,35 @@
 ;||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ;
 ;
-;
 
-LEA:                MACRO (reg,ETIQ)        ; macro LEA
+LEA:                MACRO(reg,ETIQ)        ; macro LEA
                     or reg,r0,low(ETIQ)
                     or.u reg,reg,high(ETIQ)
                     ENDMACRO
 
-LOAD:               MACRO (reg,ETIQ)        ; macro LOAD
+LOAD:               MACRO(reg,ETIQ)        ; macro LOAD
                     LEA (reg,ETIQ)
                     ld reg,reg,0
                     ENDMACRO
 
-PUSH:               MACRO (reg)             ; macro PUSH
+PUSH:               MACRO(reg)             ; macro PUSH
                     subu r30,r30,4
                     st reg,r30,r0
                     ENDMACRO
 
-POP:                MACRO (reg)             ; macro POP
+POP:                MACRO(reg)             ; macro POP
                     ld reg,r30,r0
                     addu r30,r30,4
                     ENDMACRO
+
+POPSR:				MACRO(reg)				; macro pop pero sin return del ultimo
+					addu r30, r30, 4
+					ENDMACRO
 					
 DBNZ:           	MACRO(reg,ETI)           ; macro DBNZ     
 					sub reg,reg,1                 
-					cmp r4,reg,0                 
-					bb0 2,r4,ETI                 
+					cmp r7,reg,0                 
+					bb0 2,r7,ETI                 
 					ENDMACRO					
 ;--------------------------------------------------------------
 
@@ -470,7 +473,45 @@ Poppy:              POP(r20)
 					POP(r31)
 					POP(r1)
                     jmp(r1)
-				
+;--------------------------------------------------------------
+ValorPixel: 		PUSH(r1)
+					PUSH(r31)
+					or r31, r30, r30
+					ld r10, r31, 8				; Puntero SubImg
+					ld r11, r31, 12				; Puntero MFlitro
+					or r12, r0, 0				; Inicializa acumulador a 0
+					addu r13, r0, 9				; elementos de las matrices
+					or r17, r0, 256				; constante 256
+					or r19, r0, 0
+					or r21, r0, r0				; contador = 0
+					
+WhileVP:			cmp r7, r21, r13			; caso cierre de bucle
+					bb1 eq, r7, finVP			; se va pal fin
+					
+					ld.bu r4, r10, 0			; elemento SubImg
+					ld r5, r11, 0				; r5 apunta siempre al primer elemento del par 
+					
+					;JUNTA LOS DOS ELEMENTOS DE LA FRACCION DE MFILTRO
+					ld r6, r11, 4				; r6 apunta siempre al segundo elemento del par
+					;divs r5, r5, r6				; r5<- r5/r6
+					muls r15, r4, r17			; elemento SubImg * 256
+					muls r15, r15, r5			; (anterior)*NumeradorFiltro
+					divs r15, r15, r6			; (anterior)/DenominadorFiltro
+					add r12, r12, r15			; ACC = ACC + r15					
+					addu r10, r10, 1			; siguiente elemento de SubImg
+					addu r11, r11, 8			; siguiente elemento de MFiltro
+					addu r21, r21, 1			; contador = contador+1
+					
+					cmp r7, r21, r13			; caso cierre de bucle
+					bb1 eq, r7, finVP			; se va pal fin
+					
+					br WhileVP					; inicio del while
+					
+finVP: 				divs r29, r12, r17
+					or r30, r31, r31
+					POP(r31)
+					POP(r1)
+					jmp(r1)				
 ;--------------------------------------------------------------
 ;Necesito registros para, i, j,  puntero imagen, contador i, contador j
 ;contador de bucle, puntero de subimagen
@@ -631,7 +672,7 @@ Filtro:				PUSH(r1)
 					
 					ld r20, r30, 8				; Puntero Imagen
 					ld r21, r30, 12				; Puntero ImFiltrada
-					;ld r22, r30, 16				; Puntero MFiltro
+					ld r22, r30, 16				; Puntero MFiltro
 					ld r23, r20, r0				;  M
 					st r23, r21, r0				; mete M en ImFiltrada
 					ld r24, r20, 4				;  N
@@ -642,26 +683,27 @@ Filtro:				PUSH(r1)
 					or r11, r0, r0				; Contador de columnas
 
 bucleFilas:			or r11, r0, r0				; contador de columnas = 0
-
-					;cmp r14, r10, r23			; Filas = M?? 
-					;bb1 eq, r14, FinFiltro
+					ld r24, r20, 0				; M fetched en memoria
+					cmp r7, r10, r24			; miro si el contador de filas == filas de la imagen
+					bb1 eq, r7, FinFiltro		; si son iguales -> acabom filtro
+					
 
 bucleColumnas:		ld r22, r30, 16
-					PUSH(r23)					;M 
-					PUSH(r24)					;N 
-					PUSH(r21)					;ImFiltrada
-					PUSH(r22)					;MFiltro
-					PUSH(r11)					;Columnas(J)
-					PUSH(r10)					;Filas(I)
-					PUSH(r20)					;Imagen
+
+					cmp r7, r11, r22
+					bb1 eq r7, filasMasUno
+					
+					PUSH(r21)
+					PUSH(r22)
+					PUSH(r11)
+					PUSH(r10)
+					PUSH(r20)
 					bsr FilPixel
-					POP(r20)					;Imagen 
-					POP(r10)					;I
-					POP(r11)					;J 
-					POP(r22)                    ;MFiltro
-					POP(r21)					;ImFiltrada
-					POP(r24)					;N 
-					POP(r23)					;N 
+					PUSH(r20)
+					PUSH(r10)
+					POP(r11)
+					POP(r22)
+					POP(r21)
 					
 					st.b r29, r21, r0			; pixel filtrado => ImFiltrada
 					addu r11, r11, 1			; J++
@@ -674,6 +716,9 @@ bucleColumnas:		ld r22, r30, 16
 					
 					cmp r14, r10, r23
 					bb0 eq, r14, bucleFilas
+				
+filasMasUno:		addu r10, r10, 1
+					br bucleFilas
 
 FinFiltro:			or r30, r31, r31
 					POP(r31)
@@ -689,134 +734,115 @@ FiltRec:			PUSH(r1)
 					ld r21, r31, 8				; ImagenIn
 					ld r11, r21, 0				; M 
 					ld r12, r21, 4				; N
-					muls r10, r11, r12 			; Elementos de ImagenIn(MxN)
-					addu r15, r10, 8			; r10+4+4
+					mulu r10, r11, r12 			; Elementos de ImagenIn(MxN)
+					;addu r15, r10, 8			; r10+4+4
 					;Ajuste por exceso
-					or r5, r0, 4				; guardamos el multiplo en r5
-					sub r4, r5, 1				; multiplo - 1
-					add r15, r15, r4			
-					divs r15, r15, r5
-					muls r15, r15, r5			; redondeo
+					addu r5, r0, 4				; guardamos en r5 4
+					;sub r4, r5, 1				; multiplo - 1
+					;add r15, r15, r4			
+mult4:				divs r15, r10, r5
+					muls r15, r15, r5			; redondeo -> si el resultado de esto es divisible entre 4
+					cmp r7, r15, r10 			; miro a ver si es multiplo de 4
+					bb0 eq, r7, suma			; si no son igules le sumamos uno y volvemos a empezar
+					br Rec 						; si es igual sigue al bucle
 					
+suma: 				addu r10, r10, 1
+					br mult4 
+
+
+Rec:				addu r10, r10, 8
 					or r19, r0, r0
 					or r2, r0, 8
-					subu r30, r30, 12			; Reserva de espacio ImagenTmp
+					subu r30, r30, r10			; Reserva de espacio ImagenTmp
 					
 					ld r22, r31, 12				; ImagenOut
 					ld r23, r31, 16				; MFiltro
 					
 					;LLAMADA A FILTRO
+					PUSH(r10)
 					PUSH(r23)
 					PUSH(r22)
 					PUSH(r21)
 					bsr Filtro
 					POP(r21)
+					POP(r21)
 					POP(r22)
 					POP(r23)
 					
-					ld r22, r31, 12				; ImagenOut	
-					cmp r7, r19, r10
-					bb0 lt, r7, bucleFiltRec
-					ld r17, r22, 8
-					st r17, r22, 8
-					addu r19, r19, 4
-					addu r2, r2, 4
-				
+					ld r10, r31, 0  			; Numero de elementos 
+					subu r10, r10, 8			; Ajuste del numero de elementos 
+
+					ld r13, r22, 0				; M (ImOut)
+					st r13, r31, 8				; M -> pila
+					ld r13, r23, 4				; N(ImOut)
+					st r13, r31, 12				; N -> pila
+
+					or r2, r0, 0 				; contador desplazamiento y puntero a la vez 
+					addu r22, r22, 8			; Hacemos que los punteros apunten al primer elemento 
+					addu r23, r31, 16			
 					
-bucleFiltRec:		ld.bu r13, r21, 0			; ImagenOut
-					st.b r13, r10, 0			; ImagenTmp = ImagenOut
-					addu r22, r22, 1			
-					addu r10, r10, 1			
-					DBNZ(r15, bucleFiltRec)		
-					;LLAMADA A COMP 
-					ld r21, r31, 8				; ImagenIn fresh
-					ld r22, r31, 12				; ImagenOut fresh
-					
-					PUSH(r23)
-					PUSH(r21)
+duplicado: 			cmp r7, r10, r2
+					bb1 eq, llcomp
+					ld.bu r13, r22, r2			; ImagenOut
+					st.b r13, r23, r2			; ImagenTmp = ImagenOut
+					addu r2, r2, 1				; r2 ++ 
+					br duplicado
+										
+llcomp:				subu r22, r22, 8			
 					PUSH(r22)
-					bsr Comp
+					PUSH(r22)
+					bsr Comp					;llamada a comp con sus parametros 
 					POP(r22)
 					POP(r21)
-					POP(r23)
-					ld r24, r31, 20				; NCambios
 					
-					cmp r14, r29, r24			; si r29 < NCambios => FIN
-					bb1 lt, r14, Cero
-					;LLAMADA A NFILTRADOS
+					PUSH(r29)					; rsultado de comp a pila
+					
+llnf: 				;LLAMADA A NFILTRADOS
 					sub r13, r0, 1				; r13 -1
 					PUSH(r13)
 					bsr nFiltrados
-					POP(r13)
+					POPSR(r13)
 					
-					ld r25, r31, 24				; MaxFiltrados
-					
-					cmp r14, r29, r24			; si r29 = maxFiltrados(entrada) -> resta
-					bb1 eq, r14, Resta
-
-					;LLAMADA RECURSIVA A FILTREC
-					or r21, r30, 0				; ImagenTmp
+updt:				POP(r2)
+					or r3, r31, 4				;direccion de imagenTMP
 					ld r22, r31, 12				; ImagenOut
 					ld r23, r31, 16				; MFiltro 
 					ld r24, r31, 20				; NCambios
 					ld r25, r31, 24				; MaxFiltrados
+					st r2, r21, 28				; update de InOut
+					
+					cmp r7, r2, r24			; si InOut = maxFiltrados(entrada) -> resta
+					bb1 lt, r7, Cero
+					
+					cmp r7, r25, r13
+					bb1 eq, r7, Resta
+
+					;LLAMADA RECURSIVA A FILTREC
+
 					
 					PUSH(r25)					; MaxFiltrados
 					PUSH(r24)					; NCambios
 					PUSH(r23)					; MFiltro 
 					PUSH(r22)					; ImagenOut
-					PUSH(r21)					; ImagenTmp
+					PUSH(r3)					; ImagenTmp
 					bsr FiltRec
 					POP(r21)					; ImagenTmp
-					POP(r22)					; ImagenOut
-					POP(r23)					; MFiltro
+					addu r31, r21, r30			; desapilo imagenTMP
+					addu r31, r31, 12			; desapilo Imagenes y filtro
 					POP(r24)					; NCambios
 					POP(r25)					; MaxFiltrados
+					
+					st r24, r31, 20				; guardamos NCambios
+					st r25, r31, 24				; guardamos MaxFiltrados
 					br FinFiltRec
 					
 Cero: 				or r29, r0, r0				; r29 <- 0
+					br FinFiltRec
 
 Resta: 				sub r29, r0 , 1				; r29 <- -1
-
-FinFiltRec:			or r30, r31, r31
-					POP(r31)
-					POP(r1)
-					jmp(r1)
-;--------------------------------------------------------------
-ValorPixel: 		PUSH(r1)
-					PUSH(r31)
-					or r31, r30, r30
-					ld r10, r31, 8				; Puntero SubImg
-					ld r11, r31, 12				; Puntero MFlitro
-					or r12, r0, 0				; Inicializa acumulador a 0
-					addu r13, r0, 9				; elementos de las matrices
-					or r17, r0, 256				; constante 256
-					or r19, r0, 0
-					or r21, r0, r0				; contador = 0
+					br FinFiltRec
 					
-WhileVP:			cmp r7, r21, r13			; caso cierre de bucle
-					bb1 eq, r7, finVP			; se va pal fin
-					
-					ld.bu r4, r10, 0			; elemento SubImg
-					ld r5, r11, 0				; r5 apunta siempre al primer elemento del par 
-					
-					;JUNTA LOS DOS ELEMENTOS DE LA FRACCION DE MFILTRO
-					ld r6, r11, 4				; r6 apunta siempre al segundo elemento del par
-					;divs r5, r5, r6				; r5<- r5/r6
-					muls r15, r4, r17			; elemento SubImg * 256
-					muls r15, r15, r5			; (anterior)*NumeradorFiltro
-					divs r15, r15, r6			; (anterior)/DenominadorFiltro
-					add r12, r12, r15			; ACC = ACC + r15					
-					addu r10, r10, 1			; siguiente elemento de SubImg
-					addu r11, r11, 8			; siguiente elemento de MFiltro
-					addu r21, r21, 1			; contador = contador+1
-					
-					cmp r7, r21, r13			; caso cierre de bucle
-					bb1 eq, r7, finVP			; se va pal fin
-					
-					br WhileVP					; inicio del while
-					
-finVP: 				divs r29, r12, r17
+FinFiltRec:			addu r31, r31, 28;
 					or r30, r31, r31
 					POP(r31)
 					POP(r1)
