@@ -2,7 +2,6 @@ package cc.banco;
 
 import es.upm.babel.cclib.Monitor;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -67,19 +66,7 @@ public class BancoMonitor implements Banco  {
 				}
 			}
 		}
-		//			bloqueoTransf bloq = TransfBlock.get(transf.get(i));	// guardamos: la primera entrada de la lista + saldo origen + saldo destino
-		////			Integer saldoO =cuentas.get(bloq.ori);
-		////			Integer saldoD =cuentas.get(bloq.dest);
-		//			if((cuentas.containsKey(bloq.ori)) && 
-		//					(cuentas.containsKey(bloq.dest) ) && 
-		//					(cuentas.get(bloq.ori) >= bloq.cant)) {
-		//					signaled = !signaled;
-		//					TransfBlock.remove(bloq);
-		//					bloq.c.signal();
-		//					}
-		//				}
-		//		}
-		//		}
+
 
 
 		//Segunda parte de desbloque generico: recorre la lista de alertas bloqueadas 
