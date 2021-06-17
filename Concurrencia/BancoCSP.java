@@ -8,6 +8,7 @@ package cc.banco;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jcsp.lang.Alternative;
 import org.jcsp.lang.AltingChannelInput;
@@ -17,6 +18,8 @@ import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
 import org.jcsp.lang.ProcessManager;
+
+import cc.banco.BancoMonitor.bloqueoTransf;
 
 
 
@@ -29,10 +32,11 @@ public class BancoCSP implements Banco, CSProcess {
 	private Any2OneChannel chDisponible;
 	private Any2OneChannel chTransferir;
 	private Any2OneChannel chAlertar; 
+	
 	Map<String, Integer> cuentas;
 	//TADs para peticiones que se han aplazado y por tratar
-	LinkedList<TransferirReq> TransfBlock;
-	LinkedList<AlertarReq> AlertarBlock;
+	Map<String,LinkedList<TransferirReq>> TransfBlock = new HashMap<>();
+	Map<String,LinkedList<AlertarReq>> AlertasBlock = new HashMap<>();
 
 	// clases para peticiones
 	// regalamos una como ejemplo
@@ -93,18 +97,14 @@ public class BancoCSP implements Banco, CSProcess {
 		this.chTransferir = Channel.any2one();
 		new ProcessManager(this).start();
 		cuentas = new HashMap<String, Integer>();
-		TransfBlock = new LinkedList<TransferirReq>();
-		AlertarBlock = new LinkedList<AlertarReq>();
+
 	}
 
 
 	public void ingresar(String c, int v) {
 		//Creacion de confirmacion + envio por canal correspondiente
 		IngresarReq peticion = new IngresarReq(c, v);
-		chIngresar.out().write(peticion);
-		//Esperar confirmacion
-		chIngresar.in().read();
-		peticion.resp.in().read();
+		chIngresar.out().write(peticion); // envia la peticion
 
 	}
 
@@ -117,7 +117,7 @@ public class BancoCSP implements Banco, CSProcess {
 			chTransferir.out().write(peticion);
 			//Esperar confirmacion
 			chTransferir.in().read();
-			peticion.resp.in().read();
+			//peticion.resp.in().read();
 		}
 		// no cumple PRE
 		else {
@@ -136,7 +136,7 @@ public class BancoCSP implements Banco, CSProcess {
 		chDisponible.out().write(peticion);
 		//Esperar resultado por canal 
 		Integer saldo = (Integer) chDisponible.in().read();
-		peticion.resp.in().read();
+		//peticion.resp.in().read();
 		return (int) saldo;
 
 	}
@@ -151,7 +151,8 @@ public class BancoCSP implements Banco, CSProcess {
 		AlertarReq peticion = new AlertarReq(c, v);
 		chAlertar.out().write(peticion);
 		//Esperar confirmacion
-		peticion.resp.in().read();
+		Integer resp = (Integer)peticion.resp.in().read();
+		// tratar respuesta del servidor
 	}
 
 	// Codigo del servidor
@@ -180,27 +181,36 @@ public class BancoCSP implements Banco, CSProcess {
 			case INGRESAR: {
 				//Recibir peticion
 				IngresarReq pet = (IngresarReq) chIngresar.in().read();
+				String newAcc = pet.cuenta;
+				Integer dinerot = pet.cantidad;
+				
 				//CPRE: cuenta esta en banco
 				if(!cuentas.containsKey(pet.cuenta) ) {
 					//Si no esta se anade
-					cuentas.put(pet.cuenta, pet.cantidad);
+					cuentas.put(newAcc, dinerot);
+					if(!TransfBlock.containsKey(newAcc)) {
+						TransfBlock.put(newAcc, new LinkedList<TransferirReq>());
+					}
+					if(!AlertasBlock.containsKey(newAcc)) {
+						AlertasBlock.put(newAcc, new LinkedList<AlertarReq>());
+					}
 				}
 				else {
+					int saldo = cuentas.get(newAcc);
 					//Cumple CPPRE -> saldo+=cantidad a ingresar
-					cuentas.put(pet.cuenta,pet.cantidad + cuentas.get(pet.cuenta));
+					cuentas.put(newAcc,dinerot + saldo);
 				}
 				desbloqueoGeneral();
 				break;
 			}
 			case DISPONIBLE: {
+				// recibir peticion
 				DisponibleReq pet = (DisponibleReq) chDisponible.in().read();
 
-				// recibir peticion
-				if(cuentas.containsKey(pet.cuenta)) {
-					int dinero = 0;
-					dinero = cuentas.get(pet.cuenta);	
+					int dinero = cuentas.get(pet.cuenta);;
 					pet.resp.out().write(dinero);
-				}// COMPLETAD
+					
+				// COMPLETAD
 				// responder
 				// COMPLETAD
 				break;
@@ -209,9 +219,11 @@ public class BancoCSP implements Banco, CSProcess {
 				TransferirReq pet = (TransferirReq) chTransferir.in().read();
 
 
-
+				if(TransfBlock.get(pet.from) == null) {
+					TransfBlock.put(pet.from, new LinkedList<TransferirReq>());
+				}
 				if (!cuentas.containsKey(pet.from) || !cuentas.containsKey(pet.to) || cuentas.get(pet.from) < pet.value) {
-					TransfBlock.add(pet);
+					TransfBlock.get(pet.from).add(pet);
 				}
 				else {
 
@@ -226,12 +238,12 @@ public class BancoCSP implements Banco, CSProcess {
 				}
 			}
 			case ALERTAR: {
-				AlertarReq peticion = (AlertarReq) chAlertar.in().read();
-				if(cuentas.get(peticion.cuenta) < peticion.minimo) {
-					peticion.resp.out().write(peticion.minimo);
+				AlertarReq pet= (AlertarReq) chAlertar.in().read();
+				if(cuentas.get(pet.cuenta) < pet.minimo) {
+					pet.resp.out().write(pet.minimo);
 				}
 				else { 
-					AlertarBlock.add(peticion);
+					AlertasBlock.get(pet.cuenta).add(pet);
 				}
 				break;
 			}
@@ -239,61 +251,86 @@ public class BancoCSP implements Banco, CSProcess {
 
 			//Tratamiento de peticiones aplazadas si es posible
 			desbloqueoGeneral();
-			//desbloqueoGeneral(AlertarBlock); // ????
 
 		}
 	}
 
 
 	private  void desbloqueoGeneral() {
-		boolean signaled = false;
-		LinkedList<String> transfRd = new LinkedList<String>();
-		int nt = TransfBlock.size();	
-		for(int i = 0; i < nt; i++) {
-			TransferirReq bt = TransfBlock.get(i);
-			int SaldoO = cuentas.get(bt.from);
-			int SaldoD = cuentas.get(bt.to);
-			if(cuentas.containsKey(bt.from) && cuentas.containsKey(bt.to) && SaldoO >= bt.value && !tieneCuenta(transfRd,bt.from)) {
-				cuentas.put(bt.from, SaldoO - bt.value);
-				cuentas.put(bt.to, SaldoD + bt.value);
-
-				TransfBlock.remove(i).resp.out().write(null);
-				transfRd = new LinkedList<String>();
-
-				i = -1;
-				nt--;
-			}
-			else if(!tieneCuenta(transfRd, bt.from)) {
-				transfRd.addLast(bt.from);
-			}
-		}
-		int na = AlertarBlock.size();
-
-		for(int i = 0; i < na;i++) {
-			AlertarReq ba = AlertarBlock.get(i);
-			int SaldoO = cuentas.get(ba.cuenta);
-			if(SaldoO < ba.minimo) {
-				AlertarBlock.remove(i).resp.out().write(null);
-				i--;
-				na--;
+		for(Entry<String, LinkedList<TransferirReq>> entry : TransfBlock.entrySet()) {
+			LinkedList<TransferirReq> bloqlist = entry.getValue();
+			boolean done = false;
+			for(int i = 0; i < bloqlist.size() && !done; i++) {
+				TransferirReq bloq = bloqlist.get(i);
+				int saldoO = cuentas.get(bloq.from);
+				int saldoD = cuentas.get(bloq.to);
+				if (cuentas.containsKey(bloq.from) && cuentas.containsKey(bloq.to)
+						&& (cuentas.get(bloq.from) >= bloq.value)
+						&& (!tieneCuenta(TransfBlock, bloq.from) && !tieneCuentaBloq(TransfBlock.get(bloq.from), bloq.from))) {
+					saldoO = saldoO - bloq.value;
+					saldoD = saldoD + bloq.value;
+					
+					cuentas.put(bloq.from,saldoO);
+					cuentas.put(bloq.to, saldoD);
+					
+					bloq.resp.out().write(null);
+					bloqlist.poll();
+					done = true;
+					
+				}
 			}
 		}
+		for(Entry<String, LinkedList<AlertarReq>> entry : AlertasBlock.entrySet()) {
+			LinkedList<AlertarReq> bloqlist = entry.getValue();
+			boolean done = false;
+			for(int i = 0; i < bloqlist.size() && !done; i++) {
+				AlertarReq bloq = bloqlist.get(i);
+				int saldo = cuentas.get(bloq.cuenta);
+				if (saldo < bloq.minimo) {
+					bloq.resp.out().write(bloq.minimo);
+					bloqlist.poll();
+					done = true;
+				}
+				else {
+					bloqlist.poll();
+					bloqlist.add(bloq);
+				}
+			}
+		}
+//		int na = AlertarBlock.size();
+//
+//		for(int i = 0; i < na;i++) {
+//			AlertarReq ba = AlertarBlock.get(i);
+//			int SaldoO = cuentas.get(ba.cuenta);
+//			if(SaldoO < ba.minimo) {
+//				AlertarBlock.remove(i).resp.out().write(null);
+//				i--;
+//				na--;
+//			}
+//		}
 	}
 
 
-	private boolean tieneCuenta(LinkedList<String> t, String from) {
-		boolean signaled = false;
-		for(int i = 0; i < t.size() && !signaled; i++ ) {
-			if(t.get(i).equals(from)) {
-				signaled = !signaled;
+	private boolean tieneCuentaBloq(LinkedList<TransferirReq> t, String from) {
+		boolean found = false;
+		for(int i = 0; i < t.size() && !found ;i++) {
+			if(t.get(i).from.equals(from)) {
+				found = true;
 			}
 		}
-		return signaled;
+		return found;
+	}
+
+
+	public boolean tieneCuenta(Map<String,LinkedList<TransferirReq>> transfBlock2, String o) {
+
+		boolean found = false;
+		for(Map.Entry<String,LinkedList<TransferirReq>> entry : TransfBlock.entrySet()) {
+			if(entry.getKey().equals(o)) {
+				found = true;
+			}
+		}
+		return found;
 	}
 
 }
-
-
-
-
-
