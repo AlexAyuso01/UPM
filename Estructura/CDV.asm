@@ -37,15 +37,15 @@ POP:                MACRO(reg)             ; macro POP
                     addu r30,r30,4
                     ENDMACRO
 
-POPSR:				MACRO(reg)				; macro pop pero sin return del ultimo
-					addu r30, r30, 4
-					ENDMACRO
+POPSR:		    MACRO(reg)				; macro pop pero sin return del ultimo
+		    addu r30, r30, 4
+		    ENDMACRO
 					
-DBNZ:           	MACRO(reg,ETIQ)           ; macro DBNZ     
-					sub reg,reg,1                 
-					cmp r7,reg,0                 
-					bb0 2,r7,ETIQ                 
-					ENDMACRO		
+DBNZ:               MACRO(reg,ETIQ)           ; macro DBNZ     
+                    sub reg,reg,1                 
+		    cmp r7,reg,0                 
+		    bb0 2,r7,ETIQ                 
+		    ENDMACRO		
 
 MARCOPUSH:          MACRO()
                     PUSH(r1)
@@ -111,8 +111,8 @@ PruebaCoincidenCad: MACRO(CADENA1,CADENA2)
 		org 0x0000F000
 		PILA:	data	0		
 		org 50000
-        MEGAPILA:
-        data	0		
+                MEGAPILA:
+                data	0		
 		org 40000
 ;--------------------------------------------------------------
 ;SETS DE CADENAS DE PRUEBA
@@ -139,6 +139,8 @@ data "l"
 
 BIEN: data 0x69696969
 MAL:  data 0xFFFFFFFF
+;--------------------------------------------------------------
+;			INICIO TESTERS
 ;--------------------------------------------------------------
 ;TESTER LongCad                                  
 TESTERLongCad:      LEA(r30,MEGAPILA)
