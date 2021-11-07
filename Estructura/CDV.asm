@@ -253,7 +253,9 @@ FinBIEN:            LEA(r29,BIEN)
 FinMAL:             LEA(r29,MAL)
                     ld r29, r29, 0
                     stop
-;--------------------------------------------------------------
+;---------------------------------------------------------------
+;			INICIO SUBRUTINAS 
+;---------------------------------------------------------------
 LongCad:            MARCOPUSH()       ; creamos el marco de pila 
                     ld r20, r31, 8 
                     ld.bu r4, r20, 0          ; creamos un puntero y guardamos su contenido
