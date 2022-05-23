@@ -1,17 +1,19 @@
 package model;
 
+import java.sql.SQLException;
+
 import db.map.CategoriaCompeticionBD;
 import db.map.CategoriaEdadBD;
 import db.map.ClubBD;
 
 public class Equipo {
-	private String licencia, nombre;
-	private int telefono;
+	private String nombre;
+	private int telefono,licencia;
 	private Club club;
 	private CategoriaEdad categoriaEdad;
 	private CategoriaCompeticion categoriaCompeticion;
-	public Equipo(String licencia, String nombre, int telefono, String nombreClub, int categoriaEdad,
-			int categoriaCompeticion) {
+	public Equipo(int licencia, String nombre, int telefono, String nombreClub, int categoriaEdad,
+			int categoriaCompeticion) throws SQLException{
 		super();
 		this.licencia = licencia;
 		this.nombre = nombre;
@@ -20,10 +22,10 @@ public class Equipo {
 		this.categoriaEdad = CategoriaEdadBD.getById(categoriaEdad);
 		this.categoriaCompeticion = CategoriaCompeticionBD.getById(categoriaCompeticion);
 	}
-	public String getLicencia() {
+	public int getLicencia() {
 		return licencia;
 	}
-	public void setLicencia(String licencia) {
+	public void setLicencia(int licencia) {
 		this.licencia = licencia;
 	}
 	public String getNombre() {

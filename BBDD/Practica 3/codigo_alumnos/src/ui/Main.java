@@ -11,10 +11,10 @@ import model.Equipo;
 import model.Jugador;
 
 public class Main {
-	// Prueba la creación, carga y borrado de Categorías de Edad
+	// Prueba la creaciï¿½n, carga y borrado de Categorï¿½as de Edad
 	public static void pruebaModificacionCategorias() {
 		List<CategoriaEdad> categorias = CategoriaEdadBD.getAll();
-		CategoriaEdad ce = new CategoriaEdad("Prueba", "Prueba de creación", 99, 110);
+		CategoriaEdad ce = new CategoriaEdad("Prueba", "Prueba de creaciï¿½n", 99, 110);
 		categorias.add(ce);
 		categorias.get(0).setEdadMinima(-2);
 		CategoriaEdadBD.saveAll(categorias);
@@ -29,7 +29,7 @@ public class Main {
 		
 	}
 	
-	// Pruebas básicas
+	// Pruebas bï¿½sicas
 	// NO MODIFICAR LAS CABECERAS DE NINGUN METODO
 	public static void main(String[] args) {
 		
