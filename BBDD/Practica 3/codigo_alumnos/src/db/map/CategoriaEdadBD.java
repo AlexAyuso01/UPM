@@ -3,6 +3,8 @@ package db.map;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import db.AdministradorConexion;
@@ -10,37 +12,88 @@ import model.CategoriaEdad;
 
 public class CategoriaEdadBD {
 	/**
-	 * Obtiene de la base de datos todas las categoría de edad devolviendo una lista de objetos CategoriaEdad 
+	 * Obtiene de la base de datos todas las categorï¿½a de edad devolviendo una lista de objetos CategoriaEdad 
 	 * @return
+	 * @throws SQLException
 	 */
-	public static List<CategoriaEdad> getAll() {
+	public static List<CategoriaEdad> getAll(){
 		// TODO: Implementar
-		return null;
+		List<CategoriaEdad> list = new ArrayList<CategoriaEdad>();
+		try {
+			Statement st = AdministradorConexion.getStatement();
+			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad" );
+			while (rs.next()) {
+				Integer id = rs.getInt("id");
+				String nombre = rs.getString("nombre");
+				String descripcion = rs.getString("descripcion");
+				Integer edadMinima = rs.getInt("edad_minima");
+				Integer edadMaxima = rs.getInt("edad_maxima");
+				CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edadMinima, edadMaxima);
+				list.add(result);
+			}
+			rs.close();
+			st.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return list;
 	}
 
 	/**
 	 * 
 	 * @param categoriaEdad
-	 * @return Obtiene de la base de datos la categoría de edad con id igual al parámetro categoriaEdad, 
+	 * @return Obtiene de la base de datos la categorï¿½a de edad con id igual al parï¿½metro categoriaEdad, 
 	 *    creando un objeto del tipo model.CategoriaEdad
 	 */
 	public static CategoriaEdad getById(int categoriaEdad) {
 		// TODO: Implementar
-		return null;
+		CategoriaEdad result = null;
+		try{
+			Statement st = AdministradorConexion.getStatement();
+			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad WHERE id = "+categoriaEdad);
+		
+			Integer id = rs.getInt("id");
+			String nombre = rs.getString("nombre");
+			String descripcion = rs.getString("descripcion");
+			Integer edad_minima = rs.getInt("edad_minima");
+			Integer edad_maxima = rs.getInt("edad_maxima");
+			result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);
+
+			rs.close();
+			st.close();	
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
+		return result;
 	}
 
 	/**
 	 * 
 	 * @param ce
-	 * @return Borra de la base de datos la categoría de edad con id igual al identificador del objeto ce
+	 * @return Borra de la base de datos la categorï¿½a de edad con id igual al identificador del objeto ce
 	 */
-	public static boolean deleteCategoria(CategoriaEdad ce) {
-		// TODO: Implementar
-		return false;
+	public static boolean deleteCategoria(CategoriaEdad ce){
+		// TODO: Implementar	
+		boolean result = false;	
+		try {
+		Statement st = AdministradorConexion.getStatement();
+		ResultSet rs = st.executeQuery("DROP * FROM categoria_edad WHERE id = "+ce.getId());
+
+		if (!getAll().contains(ce))
+			result = true;
+
+		rs.close();
+		st.close();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 	
 	/**
-	 * Este método guarda en la base de datos (actualiza o crea) los objetos del tipo CategoriaEdad que recibe en
+	 * Este mï¿½todo guarda en la base de datos (actualiza o crea) los objetos del tipo CategoriaEdad que recibe en
 	 * la lista data
 	 * Si el objeto CategoriaEdad tiene id igual a -1 (se ha creado en Java) se realiza un insert y se actualiza el
 	 * id en el objeto

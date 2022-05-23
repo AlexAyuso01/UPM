@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class AdministradorConexion {
-	private static String server = "127.0.0.1", schema = "balonmano", user = "aplicacion", password = "aplicacion", port = "3306"; 
+	private static String server = "127.0.0.1", schema = "balonmano", user = "root", password = "@Alconada12", port = "3306"; 
 	
 	private static Conexion conn = null;
 	
