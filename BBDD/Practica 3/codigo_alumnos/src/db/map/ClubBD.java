@@ -14,8 +14,10 @@ public class ClubBD {
 	 * @param nombreClub
 	 * @return
 	 */
-	public static Club getById(String nombreClub) throws SQLException{
-		// TODO: Implementar			
+	public static Club getById(String nombreClub) {
+		// TODO: Implementar
+		Club result = null;	
+		try {		
 			Statement st = AdministradorConexion.getStatement();
 			ResultSet rs = st.executeQuery("SELECT * FROM club WHERE id = "+nombreClub);
 			
@@ -29,11 +31,13 @@ public class ClubBD {
 			String telefono = rs.getString("telefono");
 			String personaContacto = rs.getString("persona_contacto");
 
-			Club result = new Club(nombre, calle, numero, piso, escalera, cp, localidad, telefono, personaContacto);
+			result =new Club(nombre, calle, numero, piso, escalera, cp, localidad, telefono, personaContacto);
 
 			rs.close();
 			st.close();	
-			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
 			return result;
 	}
 	
