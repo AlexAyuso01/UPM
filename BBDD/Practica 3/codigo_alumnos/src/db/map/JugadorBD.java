@@ -20,7 +20,7 @@ public class JugadorBD {
 		List<Jugador> list = new ArrayList<Jugador>();
 		try {
 			Statement st = AdministradorConexion.getStatement();
-			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad" );
+			ResultSet rs = st.executeQuery("SELECT * FROM jugador" );
 			while (rs.next()) {
 				Integer nif = rs.getInt("nif");
 				String nombre = rs.getString("nombre");

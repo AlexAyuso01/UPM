@@ -17,8 +17,10 @@ public class Main {
 		CategoriaEdad ce = new CategoriaEdad("Prueba", "Prueba de creaci�n", 99, 110);
 		categorias.add(ce);
 		categorias.get(0).setEdadMinima(-2);
-		CategoriaEdadBD.saveAll(categorias);
 		System.out.println(categorias);
+		CategoriaEdadBD.saveAll(categorias);
+		
+		
 		
 		CategoriaEdadBD.deleteCategoria(ce);
 		categorias.remove(categorias.size()-1);

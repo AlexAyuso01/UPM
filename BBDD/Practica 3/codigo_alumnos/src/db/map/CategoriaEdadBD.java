@@ -16,29 +16,33 @@ public class CategoriaEdadBD {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<CategoriaEdad> getAll(){
+	public static List<CategoriaEdad> getAll() {
 		// TODO: Implementar
+		
 		List<CategoriaEdad> list = new ArrayList<CategoriaEdad>();
 		try {
 			Statement st = AdministradorConexion.getStatement();
 			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad" );
-			while (rs.next()) {
-				Integer id = rs.getInt("id");
-				String nombre = rs.getString("nombre");
-				String descripcion = rs.getString("descripcion");
-				Integer edadMinima = rs.getInt("edad_minima");
-				Integer edadMaxima = rs.getInt("edad_maxima");
-				CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edadMinima, edadMaxima);
-				list.add(result);
+
+				while (rs.next()) {
+					Integer id = rs.getInt("id");
+					String nombre = rs.getString("nombre");
+					String descripcion = rs.getString("descripcion");
+					Integer edadMinima = rs.getInt("edad_minima");
+					Integer edadMaxima = rs.getInt("edad_maxima");
+					CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edadMinima, edadMaxima);
+					list.add(result);
+				}
+				rs.close();
+				st.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			rs.close();
-			st.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return list;
 		}
-		return list;
-	}
+		
+		
 
 	/**
 	 * 
