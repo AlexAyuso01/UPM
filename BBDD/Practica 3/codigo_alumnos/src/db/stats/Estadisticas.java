@@ -7,18 +7,19 @@ import model.Jugador;
 
 public class Estadisticas {
 	/**
-	 * Método que debe devolver el listado de los jugadores que no han estado en ningún equipo 
-	 * en el año recibido como parámetro
+	 * Mï¿½todo que debe devolver el listado de los jugadores que no han estado en ningï¿½n equipo 
+	 * en el aï¿½o recibido como parï¿½metro
 	 * @param anio
 	 * @return
 	 */
 	public static List<Jugador> getJugadoresNoHanEstadoEnEquipo(int anio){
 		// TODO: Implementar
+		
 		return null;
 	}
 	
 	/**
-	 * Método que devuelve el número de equipos del mismo club máximo en los que algún jugador ha estado
+	 * Mï¿½todo que devuelve el nï¿½mero de equipos del mismo club mï¿½ximo en los que algï¿½n jugador ha estado
 	 * @return
 	 */
 	public static int getNumeroMaximoEquiposDelMismoClubHaEstadoUnJugador(){
@@ -27,7 +28,7 @@ public class Estadisticas {
 	}
 	
 	/**
-	 * Método que debe devolver el listado de los jugadores que han estado en el mayor número de equipos
+	 * Mï¿½todo que debe devolver el listado de los jugadores que han estado en el mayor nï¿½mero de equipos
 	 * del mismo club 
 	 * @return
 	 */
@@ -37,8 +38,8 @@ public class Estadisticas {
 	}
 
 	/**
-	 * Método que debe devolver el listado de los jugadores que han estado en el equipo recibido como
-	 * parámetro el año (anio)
+	 * Mï¿½todo que debe devolver el listado de los jugadores que han estado en el equipo recibido como
+	 * parï¿½metro el aï¿½o (anio)
 	 * @param equipo
 	 * @param anio
 	 * @return
