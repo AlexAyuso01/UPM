@@ -27,16 +27,20 @@ public class JugadorBD {
 				String apellido1 = rs.getString("apellido_1");
 				String apellido2 = rs.getString("apellido_2");
 				LocalDate fechaNacimiento = rs.getDate("fecha_nacimiento").toLocalDate();
+				//selecciono el jugador
 				Jugador result = new Jugador(nif, nombre, apellido1, apellido2, fechaNacimiento);
+				// lo anado a la lista de
 				list.add(result);
 			}
 			rs.close();
 			st.close();
+			return list;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
-		return list;
+		
 	}
 	
 	/**
@@ -47,7 +51,7 @@ public class JugadorBD {
 	 */
 	public static Jugador getById(String nifJugador) {
 		// TODO: Implementar
-		Jugador result = null;
+		
 		try {		
 		Statement st = AdministradorConexion.getStatement();
 		ResultSet rs = st.executeQuery("SELECT * FROM equipo WHERE id = "+nifJugador);
@@ -57,15 +61,17 @@ public class JugadorBD {
 		String apellido1 = rs.getString("apellido_1");
 		String apellido2 = rs.getString("apellido_2");
 		LocalDate fechaNacimiento = rs.getDate("fecha_nacimiento").toLocalDate();
-		result = new Jugador(nif, nombre, apellido1, apellido2, fechaNacimiento);
+		Jugador result = new Jugador(nif, nombre, apellido1, apellido2, fechaNacimiento);
 
 		rs.close();
 		st.close();	
+		return result;		
 		}
 		catch(SQLException e){
 			e.printStackTrace();
+			return null;		
 		}
-		return result;		
+		
 	}
 	
 }

@@ -18,7 +18,7 @@ public class CategoriaEdadBD {
 	 */
 	public static List<CategoriaEdad> getAll() {
 		// TODO: Implementar
-		
+
 		List<CategoriaEdad> list = new ArrayList<CategoriaEdad>();
 		try {
 			Statement st = AdministradorConexion.getStatement();
@@ -35,11 +35,13 @@ public class CategoriaEdadBD {
 				}
 				rs.close();
 				st.close();
+				return list;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return null;
 			}
-			return list;
+			
 		}
 		
 		
@@ -52,7 +54,7 @@ public class CategoriaEdadBD {
 	 */
 	public static CategoriaEdad getById(int categoriaEdad) {
 		// TODO: Implementar
-		CategoriaEdad result = null;
+		
 		try{
 			Statement st = AdministradorConexion.getStatement();
 			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad WHERE id = "+categoriaEdad);
@@ -62,15 +64,16 @@ public class CategoriaEdadBD {
 			String descripcion = rs.getString("descripcion");
 			Integer edad_minima = rs.getInt("edad_minima");
 			Integer edad_maxima = rs.getInt("edad_maxima");
-			result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);
+			CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);
 
 			rs.close();
 			st.close();	
-
+			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return null;
 		}	
-		return result;
+		
 	}
 
 	/**
@@ -92,6 +95,7 @@ public class CategoriaEdadBD {
 		st.close();	
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return result;
 		}
 		return result;
 	}

@@ -16,7 +16,7 @@ public class EquipoBD {
 	 */
 	public static Equipo getById(String licenciaEquipo){
 		// TODO: Implementar
-		Equipo result = null;
+		
 		try {		
 		Statement st = AdministradorConexion.getStatement();
 		ResultSet rs = st.executeQuery("SELECT * FROM equipo WHERE id = "+licenciaEquipo);
@@ -27,15 +27,18 @@ public class EquipoBD {
 		String nombre_club = rs.getString("nombre_club");
 		Integer categoriaEdad = rs.getInt("id_categoria_edad");
 		Integer categoriaCompeticion = rs.getInt("id_categoria_competicion");
-		result = new Equipo(licencia, nombre, telefono, nombre_club, categoriaEdad, categoriaCompeticion);
+		Equipo result = new Equipo(licencia, nombre, telefono, nombre_club, categoriaEdad, categoriaCompeticion);
 
 		rs.close();
 		st.close();	
+
+		return result;
 		}
 		catch(SQLException e){
 			e.printStackTrace();
+			return null;
 		}
-		return result;
+		
 
 	}
 	

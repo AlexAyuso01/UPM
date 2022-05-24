@@ -19,7 +19,6 @@ public class CategoriaCompeticionBD {
 	 */
 	public static CategoriaCompeticion getById(int categoriaCompeticion) {
 		// TODO: Implementar	
-		CategoriaCompeticion result = null;
 		try {	
 			Statement st = AdministradorConexion.getStatement();
 			ResultSet rs = st.executeQuery("SELECT * FROM categoria_competicion WHERE id = "+categoriaCompeticion);
@@ -27,15 +26,16 @@ public class CategoriaCompeticionBD {
 			String nombre = rs.getString("nombre");
 			String descripcion = rs.getString("descripcion");
 			Integer numeroMaxEquipos = rs.getInt("numero_max_equipos");
-			result = new CategoriaCompeticion(id, nombre, descripcion, numeroMaxEquipos);
-	
+
+			CategoriaCompeticion result = new CategoriaCompeticion(id, nombre, descripcion, numeroMaxEquipos);
+
 			rs.close();
 			st.close();	
+
+			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return null;
 		}
-				
-			return result;
-
 	}
 }
