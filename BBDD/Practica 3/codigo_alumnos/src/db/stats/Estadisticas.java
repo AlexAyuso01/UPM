@@ -55,7 +55,6 @@ public class Estadisticas {
 		int max = 0;
 		try {
 			Statement st = AdministradorConexion.getStatement();
-			// ResultSet rs = st.executeQuery("SELECT * FROM jugador WHERE nif IN( SELECT * FROM jugador_milita_equipo WHERE licencia_equipo IN (SELECT * FROM equipo))");
 			ResultSet rs = st.executeQuery("SELECT nif_jugador, nombre_club, licencia_equipo FROM jugador_milita_equipo LEFT JOIN equipo ON jugador_milita_equipo.licencia_equipo = equipo.licencia UNION SELECT nif_jugador, nombre_club, licencia_equipo FROM jugador_milita_equipo RIGHT JOIN equipo ON jugador_milita_equipo.licencia_equipo = equipo.licencia; ");
 			Map<String, Integer> map = new HashMap<String,Integer>();
 			
@@ -89,7 +88,6 @@ public class Estadisticas {
 		int max = 0;
 		try {
 			Statement st = AdministradorConexion.getStatement();
-			//ResultSet rs = st.executeQuery("SELECT * FROM jugador INNER JOIN jugador_milita_equipo ON jugador.nif = jugador_milita_equipo.nif_jugador;");
 			ResultSet rs = st.executeQuery("SELECT nif_jugador, nombre_club, licencia_equipo FROM jugador_milita_equipo LEFT JOIN equipo ON jugador_milita_equipo.licencia_equipo = equipo.licencia UNION SELECT nif_jugador, nombre_club, licencia_equipo FROM jugador_milita_equipo RIGHT JOIN equipo ON jugador_milita_equipo.licencia_equipo = equipo.licencia; ");
 			ResultSet rs2 = null;
 			Map<String, Integer> map = new HashMap<String,Integer>();
