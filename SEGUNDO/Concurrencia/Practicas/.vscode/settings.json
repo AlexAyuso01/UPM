@@ -1,0 +1,11 @@
+{
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\alyan\\OneDrive\\Documents\\DOCS\\UNI\\SEGUNDO\\CONCU\\Proyecto\\CC2021-2022_codigo_apoyo_1.0.0\\cclib-0.4.9.jar",
+        "c:\\Users\\alyan\\OneDrive\\Documents\\DOCS\\UNI\\SEGUNDO\\CONCU\\Proyecto\\CC2021-2022_codigo_apoyo_1.0.0\\jcsp.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\Practicas_2022\\PRACTICA\\cclib-0.4.9.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\Practicas_2022\\PRACTICA\\jcsp.jar"
+    ]
+}
