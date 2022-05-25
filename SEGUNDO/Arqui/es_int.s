@@ -39,6 +39,7 @@ IMRDUP  DC.B      0     * Duplicado (legible) del IM
 
 INCLUDE bib_aux.s
 
+
 **************************** INIT ****************************************************
 INIT:
 
@@ -90,21 +91,16 @@ SCAN:
                         MOVE.L          A4,-40(A6)
                         MOVE.L          A5,-44(A6)
                         ** Reset de parámetros
-                        CLR         D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
-                        CLR         D1
-                        CLR         D2
-                        CLR         D3
-                        CLR         D4
-                        CLR         D5
+                        MOVE.L         #0,D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
+                        MOVE.L         #0,D1
+                        MOVE.L         #0,D2
+                        MOVE.L         #0,D3
+                        MOVE.L         #0,D4
+                        MOVE.L         #0,D5
                         MOVE.L      8(A6),A1        * DIR BUFFER A A1
                         MOVE.W      12(A6),D1       * DESCRIPTOR A D1
                         MOVE.W      14(A6),D2       * TAMAÑO A D2
                         MOVE.W      D1,D5           * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-
-                        **COMPROBACIÓN DE TAMAÑO**
-                        CMP.W       D2,D0           * aprovecho que D0 está limpio para comprobar el tamaño
-                        BLE         FN_SCN          * si el tamaño es menor o igual a 0 me voy al final
-
                         MOVE.L      #$FFFFFFFF,D4   * D4 = -1 para casos y comprobaciones
 
                         **SELECCION DE BUFFER**
@@ -114,33 +110,35 @@ SCAN:
                         BEQ         SB              *ESCRIBIR POR B
 
                         **ERROR EN CARACTER**
-                        MOVE.L      D4,D0 
-                        BRA         FN_SCN
+                        MOVE.L       D4,D0       * Devuelvo -1 para tamaño=0/
+                        BRA         FN_SCER
 
                         **LECTURA**
         
-        SA:             CMP.L       D2,D3           * He leido todo?
+        SA:             CMP.L       D2,D3           * Tamanyo = contador? Cubre tamanyo=0
                         BEQ         FN_SCN          * Si -> fin
+                        MOVE.L      #0,D0           * Aseguramos que D0 selecciona el buffer correcto
                         BSR         LEECAR          * D0=0 luego llamo a leecar sin problemas
                         CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?) 
                         BEQ         FN_SCN          * Si -> fin
-                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        MOVE.B      D0,(A1)+        * mover a buffer incrementando puntero
                         ADD.L       #1,D3           * incremento contador de caracteres leidos
                         BRA         SA
 
         SB:             CMP.L       D2,D3           * SI SE HA LEIDO TODO -> FIN
-                        MOVE.L      D1,D0           * D0=descriptor     
-                        BSR         LEECAR     
+                        BEQ         FN_SCN          * Si -> fin
+                        MOVE.L      #1,D0           * Aseguramos que D0 selecciona el buffer correcto
+                        BSR         LEECAR          * D0=0 luego llamo a leecar sin problemas
                         CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?)
                         BEQ         FN_SCN          * Si -> fin
-                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        MOVE.B      D0,(A1)+        * mover a buffer incrementando puntero
                         ADD.L       #1,D3           * incremento contador de caracteres leidos
                         BRA         SB 
 
                         **FIN SCAN** 
 
-        FN_SCN:         MOVE.L D3,D0                * D0<-contador de caracteres leidos 
-                        MOVE.L          -4(A6),D1
+        FN_SCN:         MOVE.L          D3,D0                * D0<-contador de caracteres leidos 
+        FN_SCER:        MOVE.L          -4(A6),D1
                         MOVE.L          -8(A6),D2
                         MOVE.L          -12(A6),D3
                         MOVE.L          -16(A6),D4
@@ -180,80 +178,77 @@ PRINT:
                         MOVE.L          A4,-44(A6)
                         MOVE.L          A5,-48(A6)
                 * LIMPIO D1, D2, D3
-                        CLR 			D0
-                        CLR			D1				* Limpio D1 para descriptor			
-                        CLR			D2				* Limpio D2 para tamano
-                        CLR			D3				* Contador a 0 
-                        CLR			D4				* Limpio D4 para guardar el SR
-                        MOVE.L 			8(A6),A1 		* Buffer en A1 (marco de pila + buffer)	
+                        MOVE.L         #0,D0
+                        MOVE.L         #0,D1				* Limpio D1 para descriptor			
+                        MOVE.L         #0,D2				* Limpio D2 para tamano
+                        MOVE.L         #0,D3				* Contador a 0 
+                        MOVE.L         #0,D4				* Limpio D4 para guardar el SR
+                        MOVE.L         #0,D5
+                        MOVE.L         #0,D6
+                        MOVE.L 			8(A6),A1 		* Buffer en A1 
                         MOVE.W			12(A6),D1		* D1 <- Descriptor
-                        MOVE.W			14(A6),D2		* Tamano a D2 (marco de pila + buffer + descriptor + tamano )
+                        MOVE.W			14(A6),D2		* Tamano a D2 
                 
                 * COMPARACIONES PARA SABER SI ES A O B
                 
                         CMP.W			#0,D1			* Si es 0 escritura es en A
-                        BEQ			A_PRINT
+                        BEQ			BUCLE_PA
                         CMP.W			#1,D1			* Si es 1 escritura es en B
-                        BEQ			B_PRINT
+                        BEQ		        BUCLE_PB
                         
         ERROR_PR: 
                         MOVE.L			#$ffffffff,D0	* D0 = -1
-                        JMP			P_FIN 
+                        JMP			P_FER           * saltamos a la salida de error 
                 
-        A_PRINT:
-                        MOVE.L			#2,D0			* Es 2 por el ESCCAR q si recibe 2 se va a buffer interno de transaminsion
-                        BRA			BUCLE_P
-        B_PRINT:
-                        MOVE.L			#3,D0
-                        JMP			BUCLE_P
                         
                 *BUCLE DE PRINT:
-        BUCLE_P:
+        
+        BUCLE_PA:
                         CMP.L			D3,D2			* Si tamano == contador, hemos terminado
-                        BEQ			P_TER
-                        
-                        MOVE.B			(A1),D5				* Avanzo el buffer y guardo el dato en D5
-                        MOVE.L 			D3,-(A7)			* PUSH(D3)-> contador
-                        MOVE.L 			A1,-(A7)			* PUSH(A1)-> dir buffer
-                        MOVE.L 			D2,-(A7)			* PUSH(D2)-> tamano
-                        BSR			ESCCAR
-                        MOVE.L 			(A7)+,D2		    * POP(D2) <- tamano
-                        MOVE.L 			(A7)+,A1		    * POP(A1) <- dir buffer
-                        MOVE.L 			(A7)+,D3		    * POP(D3) <- conatdor
-                        ADD.L			#1,A1
-                        
-                        MOVE.L 			#$ffffffff,D6
-                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
-                        BEQ 			P_TER
-                        ADD.L			#1,D3			* Contador + 1
-                        JMP			BUCLE_P
-                        
-        P_TER:
-                        CLR			D4
-                        MOVE.W 			SR,D4 				* SR -> D4
-                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones
-
-                * COMPROBACIONES
-                        CMP.W			#0,D1			* Compruebo si estamos en A
                         BEQ			A_SET
                         
-                        CMP.W			#1,D1			* Compruebo si estamos en B
+                        MOVE.B                  (A1)+,D1                * Avanzo el buffer y guardo el dato en D5
+                        MOVE.L                  #2,D0
+                        BSR			ESCCAR
+                        MOVE.L 			#$ffffffff,D6
+                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
+                        BEQ 			A_SET
+                        ADD.L			#1,D3			* Contador + 1
+                        JMP			BUCLE_PA
+
+        BUCLE_PB:
+                        CMP.L			D3,D2			* Si tamano == contador, hemos terminado
                         BEQ			B_SET
+                        
+                        MOVE.B                  (A1)+,D1                * Avanzo el buffer y guardo el dato en D5
+                        MOVE.L                  #3,D0
+                        BSR			ESCCAR
+                        MOVE.L 			#$ffffffff,D6
+                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
+                        BEQ 			B_SET
+                        ADD.L			#1,D3			* Contador + 1
+                        JMP			BUCLE_PB
+        
                 
-        A_SET:							
-                        OR.B 			#%00000001,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
-                        MOVE.W 			D4,SR				* SR a valor original	
-                        JMP 			P_FIN
-        B_SET:							
-                        OR.B 			#%00010000,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
-                        MOVE.W 			D4,SR				* SR a valor original	
-                                
+        A_SET:		CMP.L                   #0,D3
+                        BEQ                     P_FIN
+                        MOVE.B                  IMRDUP,D4          					
+                        OR.B 			#%00000001,D4
+                        MOVE.B 			D4,IMRDUP			* Interrupciones en A 
+                        MOVE.B                  D4,IMR
+                        BRA 			P_FIN
+
+        B_SET:		CMP.L                   #0,D3
+                        BEQ                     P_FIN  
+                        MOVE.B                  IMRDUP,D4          					
+                        OR.B 			#%00010000,D4
+                        MOVE.B 			D4,IMRDUP			* Interrupciones en B
+                        MOVE.B                  D4,IMR
+                                 
         P_FIN:
                         MOVE.L 			D3,D0
                         *MOVEM.L	                (A6)+,A0-A5/D1-D5                    
-                        MOVE.L          -4(A6),D1
+        P_FER:          MOVE.L          -4(A6),D1
                         MOVE.L          -8(A6),D2
                         MOVE.L          -12(A6),D3
                         MOVE.L          -16(A6),D4
@@ -269,6 +264,7 @@ PRINT:
                         RTS
 *************************** FIN PRINT *****************************************************
 *************************** RTI ****************************************************
+*DUDA: Porque el SR cambia de 2400-2404 aparentemente aleatoriamente?
 * Primero comprobar ISR (estado de interrupción) -> 4 bits 1 para cada
 * Luego comprobar la línea, el modo (lectura o escritura)? -> me lo dice el 
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
@@ -297,20 +293,20 @@ RTI:    LINK A6,#-44
 
        	COMP_PREV:      CLR 		D2
                         CLR 		D3
-                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+        RTI_COMP:       MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
-                        AND.B 		D3,D2			* Aplico la mascara
+                        AND.B 		D2,D3			* Aplico la mascara
 
-                        BTST		#0,D2
+                       BTST		#0,D3
                         BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
 
-                        BTST		#1,D2
+                        BTST		#1,D3
                         BNE		RTI_RECEP_A		** RECEPCION -> ESCCAR
 
-                        BTST		#4,D2
+                        BTST		#4,D3
                         BNE		RTI_TR_B		**TRANSMISION -> LEECAR
                         
-                        BTST		#5,D2
+                        BTST		#5,D3
                         BNE		RTI_RC_B		** RECEPCION -> ESCCAR
 
         FIN_RTI:        MOVE.L          -4(A6),D0 
@@ -331,13 +327,13 @@ RTI:    LINK A6,#-44
         RTI_TRANS_A:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
                         CLR 		D0
-                        MOVE.B		#%00000010,D0
+                        MOVE.B		#2,D0
                         BSR		LEECAR			* Llamamos a leecar
                         MOVE.L 		#$ffffffff,D4
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTA_VACIO			
                         MOVE.B		D0,TBA			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -346,25 +342,25 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1                   * porque aplicamos máscara?
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI		
+                        JMP     	RTI_COMP		
 		
 	RTI_RECEP_A:
-                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
-                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.L		#0,D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        MOVE.L		#0,D1			* Pongo D1 a 0
                         MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
-                        BSR		ESCCAR			* LLamada a ESCCAR
-                        JMP		FIN_RTI		        * D0 != -1 a comparar otra vez
+                        BSR		ESCCAR			* LLamada a ESCCAR 
+                        JMP		RTI_COMP		     
 
 	RTI_TR_B:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
                         CLR 		D0
-                        MOVE.B		#%00000011,D0
+                        MOVE.B		#3,D0
                         BSR             LEECAR			* Llamamos a leecar
                         MOVE.L 		#$ffffffff,D4
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTB_VACIO			
                         MOVE.B		D0,TBB			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -373,15 +369,79 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 
 	RTI_RC_B:
                         CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
                         CLR 		D1			* Pongo D1 a 0
                         MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
-                        MOVE.L		#%00000001,D0
+                        MOVE.L		#1,D0                   * 
                         BSR		ESCCAR			* LLamadita a ESCCAR		
-                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
+                        JMP		RTI_COMP			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
-INCLUDE pruebas.s
+BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
+PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
+PARDIR2: DC.L 0 * Direcci´on que se pasa como par´ametro
+PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
+CONTC:   DC.W 0 * Contador de caracteres a imprimir
+DESA:    EQU 0 * Descriptor l´ınea A
+DESB:    EQU 1 * Descriptor l´ınea B
+TAMBS:   EQU 1 * Tama~no de bloque para SCAN
+TAMBP:   EQU 1 * Tama~no de bloque para PRINT
+
+
+* Manejadores de excepciones
+INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
+        MOVE.L #ADDRESS_ER,12 * Address error handler
+        MOVE.L #ILLEGAL_IN,16 * Illegal instruction handler
+        MOVE.L #PRIV_VIOLT,32 * Privilege violation handler
+        MOVE.L #ILLEGAL_IN,40 * Illegal instruction handler
+        MOVE.L #ILLEGAL_IN,44 * Illegal instruction handler
+        BSR INIT
+        MOVE.W #$2000,SR * Permite interrupciones
+
+BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
+        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
+
+OTRAL:  MOVE.W PARTAM,-(A7) * Tama~no de bloque
+        MOVE.W #DESB,-(A7) * Puerto A
+        MOVE.L PARDIR,-(A7) * Direcci´on de lectura
+
+ESPL:   BSR SCAN
+        ADD.L #8,A7 * Restablece la pila
+        ADD.L D0,PARDIR * Calcula la nueva direcci´on de lectura
+        SUB.W D0,PARTAM * Actualiza el n´umero de caracteres le´ıdos
+        BNE OTRAL * Si no se han le´ıdo todas los caracteres
+        * del bloque se vuelve a leer
+        MOVE.W #TAMBS,CONTC * Inicializa contador de caracteres a imprimir
+        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
+
+OTRAE:  MOVE.W #TAMBP,PARTAM * Tama~no de escritura = Tama~no de bloque
+
+ESPE:   MOVE.W PARTAM,-(A7) * Tama~no de escritura
+        MOVE.W #DESA,-(A7) * Puerto B
+        MOVE.L PARDIR,-(A7) * Direcci´on de escritura
+        BSR PRINT
+        ADD.L #8,A7 * Restablece la pila
+        ADD.L D0,PARDIR * Calcula la nueva direcci´on del buffer
+        SUB.W D0,CONTC * Actualiza el contador de caracteres
+        BEQ SALIR * Si no quedan caracteres se acaba
+        SUB.W D0,PARTAM * Actualiza el tama~no de escritura
+        BNE ESPE * Si no se ha escrito todo el bloque se insiste
+        CMP.W #TAMBP,CONTC * Si el no de caracteres que quedan es menor que
+        * el tama~no establecido se imprime ese n´umero
+        BHI OTRAE * Siguiente bloque
+        MOVE.W CONTC,PARTAM
+        BRA ESPE * Siguiente bloque
+
+        
+SALIR:  BRA BUCPR
+BUS_ERROR: BREAK * Bus error handler
+        NOP
+ADDRESS_ER: BREAK * Address error handler
+        NOP
+ILLEGAL_IN: BREAK * Illegal instruction handler
+        NOP
+PRIV_VIOLT: BREAK * Privilege violation handler
+        NOP
