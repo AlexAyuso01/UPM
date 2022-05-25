@@ -1,6 +1,13 @@
 {
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "BBDD/Practica 3/mysql-connector-java-8.0.28.jar"
+        "BBDD/Practica 3/mysql-connector-java-8.0.28.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\aedlib.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\cclib.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\cclib-0.4.9.jar",
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\jcsp.jar"
+    ],
+    "java.project.sourcePaths": [
+        "SEGUNDO\\Concurrencia\\Practicas\\src"
     ]
 }
