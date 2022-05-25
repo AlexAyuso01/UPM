@@ -411,3 +411,8 @@ wilcox.test(sample4_1, sample4_2)
 # alternative hypothesis: true location shift is not equal to 0
 
 #No rechazamos la hipotesis nula, es decir, las dos muestras son homogeneas
+
+#######################################################
+#######################################################
+
+#PARTE 5
