@@ -2,9 +2,9 @@ package ui;
 
 import java.util.List;
 
+import db.map.JugadorBD;
 import db.map.CategoriaEdadBD;
 import db.map.EquipoBD;
-import db.map.JugadorBD;
 import db.stats.Estadisticas;
 import model.CategoriaEdad;
 import model.Equipo;
@@ -14,21 +14,27 @@ public class Main {
 	// Prueba la creaci�n, carga y borrado de Categor�as de Edad
 	public static void pruebaModificacionCategorias() {
 		List<CategoriaEdad> categorias = CategoriaEdadBD.getAll();
-		CategoriaEdad ce = new CategoriaEdad("Prueba", "Prueba de creaci�n", 99, 110);
+		CategoriaEdad ce = new CategoriaEdad("Prueba", "Prueba de creacion", 99, 110);
 		categorias.add(ce);
 		categorias.get(0).setEdadMinima(-2);
-		System.out.println(categorias);
 		CategoriaEdadBD.saveAll(categorias);
-		
-		
-		
 		CategoriaEdadBD.deleteCategoria(ce);
+		
+		for(CategoriaEdad categoriaEdad : categorias) {
+			System.out.println(categoriaEdad.toString());
+		}
+
+		System.out.println();
+
 		categorias.remove(categorias.size()-1);
 		categorias.get(0).setEdadMinima(4);
-		CategoriaEdadBD.saveAll(categorias);
-		System.out.println(categorias);
 		
-		
+		for(CategoriaEdad categoriaEdad : categorias) {
+			System.out.println(categoriaEdad.toString());
+		}
+		System.out.println();
+
+		CategoriaEdadBD.saveAll(categorias);		
 	}
 	
 	// Pruebas b�sicas

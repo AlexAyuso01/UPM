@@ -2,14 +2,13 @@ package model;
 
 import java.time.LocalDate;
 
-public class Jugador {
-	private Integer nif;
-	private String nombre, apellido1, apellido2;
+public class Jugador {;
+	private String nif, nombre, apellido1, apellido2;
 	private LocalDate fechaNacimiento;
 	
 	
-	public Jugador(Integer nif, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento) {
-		this.nif = nif;
+	public Jugador(String nif2, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento) {
+		this.nif = nif2;
 		this.nombre = nombre;
 		this.apellido1 = apellido1;
 		this.apellido2 = apellido2;
@@ -17,12 +16,12 @@ public class Jugador {
 	}
 
 
-	public Integer getNif() {
+	public String getNif() {
 		return nif;
 	}
 
 
-	public void setNif(Integer nif) {
+	public void setNif(String nif) {
 		this.nif = nif;
 	}
 

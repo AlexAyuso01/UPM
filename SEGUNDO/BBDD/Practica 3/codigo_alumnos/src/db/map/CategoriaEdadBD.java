@@ -3,7 +3,6 @@ package db.map;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +19,15 @@ public class CategoriaEdadBD {
 		// TODO: Implementar
 
 		List<CategoriaEdad> list = new ArrayList<CategoriaEdad>();
+		String query = "SELECT * FROM categoria_edad;";
+		PreparedStatement ps = null; 
 		try {
-			Statement st = AdministradorConexion.getStatement();
-			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad" );
-
+			//Inicio de la conexion 
+			ps = AdministradorConexion.prepareStatement(query);
+			ps.execute();
+			//get de los datos en la base de datos
+			ResultSet rs = ps.getResultSet();
+			//Parametros de la base de datos
 				while (rs.next()) {
 					Integer id = rs.getInt("id");
 					String nombre = rs.getString("nombre");
@@ -33,16 +37,19 @@ public class CategoriaEdadBD {
 					CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edadMinima, edadMaxima);
 					list.add(result);
 				}
-				rs.close();
-				st.close();
 				return list;
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-				return null;
-			}
-			
+				try {
+					if (ps!=null && !ps.isClosed())
+						ps.close();
+						//cierre de la conexion
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			return null;
 		}
+	}
 		
 		
 
@@ -54,25 +61,33 @@ public class CategoriaEdadBD {
 	 */
 	public static CategoriaEdad getById(int categoriaEdad) {
 		// TODO: Implementar
-		
+		String query = "SELECT * FROM categoria_edad;";
+		PreparedStatement ps = null; 
 		try{
-			Statement st = AdministradorConexion.getStatement();
-			ResultSet rs = st.executeQuery("SELECT * FROM categoria_edad WHERE id = "+categoriaEdad);
-		
+			//Inicio de la conexion 
+			ps = AdministradorConexion.prepareStatement(query);
+			ps.execute();
+			//get de los datos en la base de datos
+			ResultSet rs = ps.getResultSet();
+			//Parametros de la base de datos
 			Integer id = rs.getInt("id");
 			String nombre = rs.getString("nombre");
 			String descripcion = rs.getString("descripcion");
 			Integer edad_minima = rs.getInt("edad_minima");
 			Integer edad_maxima = rs.getInt("edad_maxima");
-			CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);
-
-			rs.close();
-			st.close();	
+			CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);	
 			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				if (ps!=null && !ps.isClosed())
+					ps.close();
+					//cierre de la conexion
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			return null;
-		}	
+		}
 		
 	}
 
@@ -84,18 +99,24 @@ public class CategoriaEdadBD {
 	public static boolean deleteCategoria(CategoriaEdad ce){
 		// TODO: Implementar	
 		boolean result = false;	
+		String query = "DELETE FROM categoria_edad WHERE id = "+ ce.getId() + ";";
+		PreparedStatement ps = null; 
 		try {
-		Statement st = AdministradorConexion.getStatement();
-		ResultSet rs = st.executeQuery("DROP * FROM categoria_edad WHERE id = "+ce.getId());
-
-		if (!getAll().contains(ce))
-			result = true;
-
-		rs.close();
-		st.close();	
+			//Inicio de la conexion 
+			ps = AdministradorConexion.prepareStatement(query);
+			ps.execute();
+			//si no existe la categoria en la base de datos se ha borrado bien
+			if (!getAll().contains(ce))
+				result = true;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return result;
+			try {
+				if (ps!=null && !ps.isClosed())
+					ps.close();
+					//cierre de la conexion
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}
 		return result;
 	}
@@ -117,11 +138,14 @@ public class CategoriaEdadBD {
 			psUpdate = AdministradorConexion.prepareStatement(queryUpdate);
 			for (CategoriaEdad ce : data) {
 				if (ce.getId()<0) {
+					System.out.println("ID de CE:"+ ce.getDescripcion() + "ID: " +ce.getId());
 					psInsert.setString(1, ce.getNombre());
 					psInsert.setString(2, ce.getDescripcion());
+					//System.out.println(""+ce.getDescripcion());
 					psInsert.setInt(3, ce.getEdadMinima());
 					psInsert.setInt(4, ce.getEdadMaxima());
-					//boolean done = 
+					//boolean done =
+					
 					psInsert.execute();	
 					ResultSet rs = psInsert.getGeneratedKeys();
 					if (rs.next()) {
@@ -151,7 +175,6 @@ public class CategoriaEdadBD {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-		}
-		
+		}	
 	}
 }
