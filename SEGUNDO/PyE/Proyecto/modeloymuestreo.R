@@ -433,3 +433,4 @@ lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2)
 ic <- predict(regremod1sion, nuevos_valores, interval = "prediction")
 lines(nuevos_valores.edades$height, mod1[, 2], lty = 2, col = "red")
 lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2, col = "red")
+# created by tools/
