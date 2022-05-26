@@ -424,12 +424,12 @@ height <- sample(data$height, 20)
 width <- sample(data$width, 20)
 nuevos_valores <- data.frame(height, width)
 predict(mod1, nuevos_valores) #prediccion de los valores
-#intervalosd e confianza
+#intervalos de confianza
 ic <- predict(mod1, nuevos_valores, interval = "confidence")
 lines(nuevos_valores.edades$height, mod1[, 2], lty = 2)
 lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2)
 
 # Intervalos de prediccion
 ic <- predict(regremod1sion, nuevos_valores, interval = "prediction")
-lines(nuevos_valores.edades$height, ic[, 2], lty = 2, col = "red")
-lines(nuevas.nuevos_valores$width, ic[, 3], lty = 2, col = "red")
+lines(nuevos_valores.edades$height, mod1[, 2], lty = 2, col = "red")
+lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2, col = "red")
