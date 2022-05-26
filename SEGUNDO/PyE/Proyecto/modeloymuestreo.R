@@ -417,20 +417,49 @@ wilcox.test(sample4_1, sample4_2)
 
 #PARTE 5
 ## CREO QUE HAY QUE USAR lm(Data$height, Data$width)
-mod1 <- lm(data$height, data$width)
-summary(mod1)
-bptest(mod1) # pueba homocestacidad (creo)
-height <- sample(data$height, 20)
-width <- sample(data$width, 20)
-nuevos_valores <- data.frame(height, width)
-predict(mod1, nuevos_valores) #prediccion de los valores
+sample_lm <- Data[sample(Data$X, 20), ]
+height <- sample_lm$height
+weight <- sample_lm$weight
+mod1 <- lm(height ~ weight,data = sample_lm)
+summary(mod1) #devielve los valores de la funcion
+plot(mod1)
+anova(mod1)  # pueba homocedasticidad (creo)
+intercept <- mod1$coefficients[1]
+weight <- mod1$coefficients[2]
+#Predicciones segun recta del modelo
+# de regresion lineal: recta
+
+##max(height)
+pred_max <- intercept + (weight * max(height))
+pred_max
+##min(height)
+pred_min <- intercept + (weight * min(height))
+pred_min
+##media(height)
+pred_med <- intercept + (weight * mean(height))
+pred_med
+
+
+mod1$residuals
+mod1$fitted.values
+
+
+
+#hmax <- data.frame(max(sample_lm$height))
+#hmin <- data.frame(min(sample_lm$height))
+#hmean <- data.frame(mean(sample_lm$height))
+#nuevos_valores <- data.frame(hmax, hmin, hmean)
+#predict(mod1, newdata = hmax) #prediccion de los valores
+#predict(mod1, newdata = hmin) #prediccion de los valores
+#predict(mod1, newdata = hmean) #prediccion de los valores
+
 #intervalos de confianza
-ic <- predict(mod1, nuevos_valores, interval = "confidence")
-lines(nuevos_valores.edades$height, mod1[, 2], lty = 2)
-lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2)
+mod2 <- predict(mod1, nuevos_valores, interval = "confidence")
+lines(nuevos_valores.edades$height, mod2[, 2], lty = 2)
+lines(nuevas.nuevos_valores$weight, mod2[, 3], lty = 2)
 
 # Intervalos de prediccion
-ic <- predict(regremod1sion, nuevos_valores, interval = "prediction")
-lines(nuevos_valores.edades$height, mod1[, 2], lty = 2, col = "red")
-lines(nuevas.nuevos_valores$width, mod1[, 3], lty = 2, col = "red")
+mod3 <- predict(regremod1sion, nuevos_valores, interval = "prediction")
+lines(nuevos_valores.edades$height, mod3[, 2], lty = 2, col = "red")
+lines(nuevas.nuevos_valores$weight, mod3[, 3], lty = 2, col = "red")
 # created by tools/

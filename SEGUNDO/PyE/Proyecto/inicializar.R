@@ -1,9 +1,9 @@
 #script para inicializar los datos 
 
 #set seed y creación de Data, S y Data 200
-set.seed(2021)
+set.seed(2022)
 #setwd("Path")
-Data = read.csv( file=paste("PYE2DataSet","29",".csv",sep=""), header=TRUE)
+Data = read.csv( file=paste("C:\\Users\\aleja\\OneDrive\\Documents\\UNI\\GIT\\UPM\\SEGUNDO\\PyE\\Proyecto\\","PYE2DataSet","29",".csv",sep=""), header=TRUE)
 S <- sample(1:dim(Data)[1],200); Data200 <- Data[S,]
 
 #importación de librerías
