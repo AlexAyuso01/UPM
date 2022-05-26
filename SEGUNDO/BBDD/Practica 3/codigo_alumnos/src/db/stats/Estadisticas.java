@@ -32,9 +32,9 @@ public class Estadisticas {
 			while (rs.next()){
 				String nif = rs.getString("nif");
 				String nombre = rs.getString("nombre");
-				String apellido1 = rs.getString("apellido1");
-				String apellido2 = rs.getString("apellido2");
-				LocalDate fechaNacimiento = rs.getDate("fechaNacimiento").toLocalDate();
+				String apellido1 = rs.getString("apellido_1");
+				String apellido2 = rs.getString("apellido_2");
+				LocalDate fechaNacimiento = rs.getDate("fecha_nacimiento").toLocalDate();
 				//Creamos jugador 
 				Jugador jugador = new Jugador(nif, nombre, apellido1, apellido2, fechaNacimiento);
 				//anadimos a la lista
@@ -137,14 +137,17 @@ public class Estadisticas {
 					ps2 = AdministradorConexion.prepareStatement(query2);
 					ps2.execute();
 					rs2 = ps2.getResultSet();
-					String nif1 = rs.getString("nif");
-					String nombre = rs2.getString("nombre");
-					String apellido1 = rs2.getString("apellido_1");
-					String apellido2 = rs2.getString("apellido_2");
-					LocalDate fechaNacimiento = rs2.getDate("fecha_nacimiento").toLocalDate();
-					//selecciono el jugador
-					Jugador jugador = new Jugador(nif1, nombre, apellido1, apellido2, fechaNacimiento);
-					jugs.add(jugador);
+					if(rs2.next()){
+						String nif1 = rs2.getString("nif");
+						String nombre = rs2.getString("nombre");
+						String apellido1 = rs2.getString("apellido_1");
+						String apellido2 = rs2.getString("apellido_2");
+						LocalDate fechaNacimiento = rs2.getDate("fecha_nacimiento").toLocalDate();
+						//selecciono el jugador
+						Jugador jugador = new Jugador(nif1, nombre, apellido1, apellido2, fechaNacimiento);
+						jugs.add(jugador);
+					}
+
 				}
 			}	
 		} catch (SQLException e) {
@@ -172,7 +175,7 @@ public class Estadisticas {
 	public static List<Jugador> getJugadoresEquipoAnio(Equipo equipo, int anio) {
 		// TODO: Implementar
 		List<Jugador> list = new ArrayList<Jugador>();
-		String query = "SELECT * FROM jugador WHERE nif IN (SELECT nif_jugador FROM jugador_milita_equipo WHERE licencia_equipo = "+equipo.getLicencia()+" && (fecha_inicio <= cast('"+anio+"-12-12' AS date) || fecha_fin >= cast('"+anio+"-00-00' AS date)))";
+		String query = "SELECT * FROM jugador WHERE nif IN (SELECT nif_jugador FROM jugador_milita_equipo WHERE licencia_equipo LIKE "+equipo.getLicencia()+" && (fecha_inicio <= cast('"+anio+"-12-31' AS date) || fecha_fin >= cast('"+anio+"-01-01' AS date)))";
 		PreparedStatement ps = null;
 		try {
 			ps = AdministradorConexion.prepareStatement(query);
@@ -181,9 +184,9 @@ public class Estadisticas {
 			while(rs.next()){
 				String nif = rs.getString("nif");
 				String nombre = rs.getString("nombre");
-				String apellido1 = rs.getString("apellido1");
-				String apellido2 = rs.getString("apellido2");
-				LocalDate fechaNacimiento = rs.getDate("fechaNacimiento").toLocalDate();
+				String apellido1 = rs.getString("apellido_1");
+				String apellido2 = rs.getString("apellido_2");
+				LocalDate fechaNacimiento = rs.getDate("fecha_nacimiento").toLocalDate();
 				//Creamos jugador 
 				Jugador jugador = new Jugador(nif, nombre, apellido1, apellido2, fechaNacimiento);
 				//anadimos a la lista

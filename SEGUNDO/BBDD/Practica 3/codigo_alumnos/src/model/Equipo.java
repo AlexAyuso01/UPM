@@ -7,12 +7,12 @@ import db.map.CategoriaEdadBD;
 import db.map.ClubBD;
 
 public class Equipo {
-	private String nombre;
-	private int telefono,licencia;
+	private String nombre,licencia;
+	private int telefono;
 	private Club club;
 	private CategoriaEdad categoriaEdad;
 	private CategoriaCompeticion categoriaCompeticion;
-	public Equipo(int licencia, String nombre, int telefono, String nombreClub, int categoriaEdad,
+	public Equipo(String licencia, String nombre, int telefono, String nombreClub, int categoriaEdad,
 			int categoriaCompeticion) throws SQLException{
 		super();
 		this.licencia = licencia;
@@ -22,10 +22,10 @@ public class Equipo {
 		this.categoriaEdad = CategoriaEdadBD.getById(categoriaEdad);
 		this.categoriaCompeticion = CategoriaCompeticionBD.getById(categoriaCompeticion);
 	}
-	public int getLicencia() {
+	public String getLicencia() {
 		return licencia;
 	}
-	public void setLicencia(int licencia) {
+	public void setLicencia(String licencia) {
 		this.licencia = licencia;
 	}
 	public String getNombre() {

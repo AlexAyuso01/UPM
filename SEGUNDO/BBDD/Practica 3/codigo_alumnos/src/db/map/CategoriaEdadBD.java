@@ -63,6 +63,7 @@ public class CategoriaEdadBD {
 		// TODO: Implementar
 		String query = "SELECT * FROM categoria_edad;";
 		PreparedStatement ps = null; 
+		CategoriaEdad result = null;
 		try{
 			//Inicio de la conexion 
 			ps = AdministradorConexion.prepareStatement(query);
@@ -70,12 +71,15 @@ public class CategoriaEdadBD {
 			//get de los datos en la base de datos
 			ResultSet rs = ps.getResultSet();
 			//Parametros de la base de datos
-			Integer id = rs.getInt("id");
-			String nombre = rs.getString("nombre");
-			String descripcion = rs.getString("descripcion");
-			Integer edad_minima = rs.getInt("edad_minima");
-			Integer edad_maxima = rs.getInt("edad_maxima");
-			CategoriaEdad result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);	
+			if(rs.next()){
+				int id = rs.getInt("id");
+				String nombre = rs.getString("nombre");
+				String descripcion = rs.getString("descripcion");
+				Integer edad_minima = rs.getInt("edad_minima");
+				Integer edad_maxima = rs.getInt("edad_maxima");
+				result = new CategoriaEdad(id, nombre, descripcion, edad_minima, edad_maxima);
+			}
+	
 			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -138,7 +142,6 @@ public class CategoriaEdadBD {
 			psUpdate = AdministradorConexion.prepareStatement(queryUpdate);
 			for (CategoriaEdad ce : data) {
 				if (ce.getId()<0) {
-					System.out.println("ID de CE:"+ ce.getDescripcion() + "ID: " +ce.getId());
 					psInsert.setString(1, ce.getNombre());
 					psInsert.setString(2, ce.getDescripcion());
 					//System.out.println(""+ce.getDescripcion());

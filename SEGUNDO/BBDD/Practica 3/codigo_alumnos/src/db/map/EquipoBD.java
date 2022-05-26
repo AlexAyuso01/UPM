@@ -27,14 +27,13 @@ public class EquipoBD {
 			ResultSet rs = ps.getResultSet();
 			//get de esos datos
 			if (rs.next()) {
-				Integer licencia = rs.getInt("licencia");
+				String licencia = rs.getString("licencia");
 				String nombre = rs.getString("nombre");
 				Integer telefono = rs.getInt("telefono");
 				String nombre_club = rs.getString("nombre_club");
 				Integer categoriaEdad = rs.getInt("id_categoria_edad");
 				Integer categoriaCompeticion = rs.getInt("id_categoria_competicion");
 				result = new Equipo(licencia, nombre, telefono, nombre_club, categoriaEdad, categoriaCompeticion);
-				
 			}
 			return result;
 		}

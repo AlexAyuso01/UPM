@@ -15,7 +15,7 @@ public class ClubBD {
 	 */
 	public static Club getById(String nombreClub) {
 		// TODO: Implementar
-		String query = "SELECT * FROM club WHERE nombre = "+nombreClub+";";	
+		String query = "SELECT * FROM club WHERE nombre LIKE \""+nombreClub +"\"";	
 		PreparedStatement ps = null;	
 		try {	
 			//Inicio de la conexion
@@ -28,13 +28,14 @@ public class ClubBD {
 			if(rs.next()){
 				String nombre = rs.getString("nombre");
 				String calle = rs.getString("calle");
-				Integer numero = rs.getInt("numero");
-				Integer piso = rs.getInt("piso");
-				Integer escalera = rs.getInt("escalera");
-				Integer cp = rs.getInt("cp");
+				int numero = rs.getInt("numero");
+				int piso = rs.getInt("piso");
+				int escalera = rs.getInt("escalera");
+				int cp = rs.getInt("cp");
 				String localidad = rs.getString("localidad");
 				String telefono = rs.getString("telefono");
 				String personaContacto = rs.getString("persona_contacto");
+				
 				result = new Club(nombre, calle, numero, piso, escalera, cp, localidad, telefono, personaContacto);
 			}
 			return result;

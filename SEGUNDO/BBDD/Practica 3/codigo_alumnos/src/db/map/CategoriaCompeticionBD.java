@@ -21,18 +21,19 @@ public class CategoriaCompeticionBD {
 		// TODO: Implementar	
 		String query = "SELECT * FROM categoria_competicion WHERE id = "+ categoriaCompeticion + ";" ;
 		PreparedStatement ps = null;
+		CategoriaCompeticion result = null;
 		try {
 			ps = AdministradorConexion.prepareStatement(query);
 			ps.execute();
 
 			ResultSet rs = ps.getResultSet();
-
-			Integer id = rs.getInt("id");
-			String nombre = rs.getString("nombre");
-			String descripcion = rs.getString("descripcion");
-			Integer numeroMaxEquipos = rs.getInt("numero_max_equipos");
-
-			CategoriaCompeticion result = new CategoriaCompeticion(id, nombre, descripcion, numeroMaxEquipos);
+			if(rs.next()) {
+				Integer id = rs.getInt("id");
+				String nombre = rs.getString("nombre");
+				String descripcion = rs.getString("descripcion");
+				Integer numeroMaxEquipos = rs.getInt("numero_max_equipos");
+				result = new CategoriaCompeticion(id, nombre, descripcion, numeroMaxEquipos);
+			}
 			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
