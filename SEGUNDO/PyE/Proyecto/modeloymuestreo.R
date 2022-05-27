@@ -71,11 +71,11 @@ muestreo_tipo <- function(n, tipo, method = NA) {
   #Tomamos n muestras
   for (i in 1:n) {
     if (tipo == "meanAge" | tipo == "varAge") {
-      set.seed(2021)
+      set.seed(2022)
       sample_m <- replicate(n, data$Age[sample(1:dim(data)[1], 200)], )
       matrix_m[i, ] <- method(sample_m[, i])
     } else if (tipo == "propSex") {
-      set.seed(2021)
+      set.seed(2022)
       sample_m <- replicate(n, data$Sex[sample(1:dim(data)[1], 200)], )
       matrix_m[i, ] <- table(sample_m[, i])[1] / 200
     }
@@ -129,7 +129,7 @@ estimacion <- function() {
       ", con todos los datos: ", mean(data_x$sleeptime), "\n", sep = "")
       cat("Estimacion varianza ", column, " ", genero,
       ", con todos los datos: ", var(data_x$sleeptime), "\n", sep = "")
-      set.seed(2021)
+      set.seed(2022)
       sample_m <- data_x[,column][sample(1:dim(data_x)[1], 200)];
       cat("Estimacion media ", column, " ", genero,
       ", con muestra de 200: ", mean(sample_m), "\n", sep = "")
@@ -165,7 +165,7 @@ estimacion_conf <- function() {
       data_x <- data;
     }
     #checkseed();
-    set.seed(2021)
+    set.seed(2022)
     sample_m <- data_x[sample(1:dim(data_x)[1], 200), ];
     boot_r <- 1000
     for (column in c("sleeptime", "steps")) {
@@ -236,7 +236,7 @@ sink();
 #########################################################
 
 #3
-set.seed(2021)
+set.seed(2022)
 sample_m <- sample(Data$Nation, 200)
 
 r0 <- 5
@@ -259,7 +259,7 @@ post2 <- function(theta) {
 k <- integrate(post1, lower = 0, upper = 1)$value
 round(integrate(post2, lower = 0, upper = 1)$value, 2)
 #IC
-qbeta(c(0.025, 0.975), shape1 = r + r0,shape2 = (n + n0) - (r + r0)) 
+qbeta(c(0.025, 0.975), shape1 = r + r0, shape2 = (n + n0) - (r + r0))
 png(filename = paste(paste("3", "densidad", sep = "_"), ".png", sep = ""))
 curve(post2, col = 2, xlab = "p", ylab = "densidad")
 dev.off()
@@ -280,7 +280,7 @@ cat("Estatura media:", mean_post)
 #######################################################
 
 #PARTE 4A
-set.seed(2021)
+set.seed(2022)
 sample4_1 <- sample(Data$IMC, 200)
 sample4_2 <- sample(Data$IMC, 200)
 
@@ -417,49 +417,222 @@ wilcox.test(sample4_1, sample4_2)
 
 #PARTE 5
 ## CREO QUE HAY QUE USAR lm(Data$height, Data$width)
+set.seed(2022)
 sample_lm <- Data[sample(Data$X, 20), ]
 height <- sample_lm$height
 weight <- sample_lm$weight
+typeof(height)
 mod1 <- lm(height ~ weight,data = sample_lm)
 summary(mod1) #devielve los valores de la funcion
 plot(mod1)
 anova(mod1)  # pueba homocedasticidad (creo)
 intercept <- mod1$coefficients[1]
 weight <- mod1$coefficients[2]
+mod1$residuals
+mod1$fitted.values
 #Predicciones segun recta del modelo
 # de regresion lineal: recta
+#conf_int = p +/- z*(sqrt(p*(1-p) / n))
+# p = sample data / data.size => 20/data.size
+# z <- qnorm(1 - (1 - 0.95) / 2)
+library(glue)
+n <- dim(sample_lm[2])
+p <- n / 1000
+err <- qnorm(0.975) * sqrt(p * (1 - p) / n)
 
 ##max(height)
 pred_max <- intercept + (weight * max(height))
 pred_max
+low_int_max <- pred_max - err
+low_int_max
+upp_int_max <- pred_max + err
+upp_int_max
+glue("{low_int_max}, {upp_int_max}")
+
 ##min(height)
 pred_min <- intercept + (weight * min(height))
 pred_min
+low_int_min <- pred_min - err
+low_int_min
+upp_int_min <- pred_min + err
+upp_int_min
+glue("{low_int_min}, {upp_int_min}")
+
 ##media(height)
 pred_med <- intercept + (weight * mean(height))
 pred_med
+low_int_med <- pred_med - err
+low_int_med
+upp_int_med <- pred_med + err
+upp_int_med
+glue("{low_int_med}, {upp_int_med}")
+
+#mismo proceso pero para mujeres
+library(dplyr)
+mujeres_alt <- data.frame(sample_lm$Sex == "M", sample_lm$height)
+height_m <- mujeres_alt$sample_lm.height[mujeres_alt$sample_lm.Sex.....M==TRUE]
+df2 <- data.frame(mujeres_alt$sample_lm.height[mujeres_alt$sample_lm.Sex.....M==TRUE])
+height_m
+
+mujeres_pes <- data.frame(sample_lm$Sex == "M", sample_lm$weight)
+weight_m <- mujeres_pes$sample_lm.weight[mujeres_pes$sample_lm.Sex.....M==TRUE]
+weight_m
+
+mod2 <- lm(height_m ~ weight_m, data = df2)
+summary(mod2) #devielve los valores de la funcion
+plot(mod2)
+abline(mod2, col="red")
+anova(mod2)  # pueba homocedasticidad (creo)
+plot(mod2$residuals)
+
+intercept_m <- mod2$coefficients[1]
+interceptss
+weight <- mod2$coefficients[2]
+weight
+
+n <- length(mujeres_pes)
+n
+p <- n / 1000
+err <- qnorm(0.975) * sqrt(p * (1 - p) / n)
+err
+
+##max(height)
+pred_max <- intercept_m + (weight * max(height_m))
+pred_max
+low_int_max <- pred_max - err
+low_int_max
+upp_int_max <- pred_max + err
+upp_int_max
+glue("{low_int_max}, {upp_int_max}")
+
+##min(height)
+pred_min <- intercept_m + (weight * min(height_m))
+pred_min
+low_int_min <- pred_min - err
+low_int_min
+upp_int_min <- pred_min + err
+upp_int_min
+glue("{low_int_min}, {upp_int_min}")
+
+##media(height)
+pred_med <- intercept_m + (weight * mean(height_m))
+pred_med
+low_int_med <- pred_med - err
+low_int_med
+upp_int_med <- pred_med + err
+upp_int_med
+glue("{low_int_med}, {upp_int_med}")
+
+# mismo proceso pero para vaornes
+hombres_alt <- data.frame(sample_lm$Sex == "V", sample_lm$height)
+height_v <- hombres_alt$sample_lm.height[hombres_alt$sample_lm.Sex.....V==TRUE]
+df3 <- data.frame(hombres_alt$sample_lm.height[hombres_alt$sample_lm.Sex.....V==TRUE])
+height_v
+
+hombres_pes <- data.frame(sample_lm$Sex == "V", sample_lm$weight)
+weight_v <- hombres_pes$sample_lm.weight[hombres_pes$sample_lm.Sex.....V==TRUE]
+weight_v
+
+mod3 <- lm(height_v ~ weight_v, data = df3)
+summary(mod3) #devielve los valores de la funcion
+plot(mod3)
+anova(mod3)  # pueba homocedasticidad (creo)
+intercept_v <- mod2$coefficients[1]
+interceptss
+weight <- mod2$coefficients[2]
+weight
+n <- length(hombres_pes)
+n
+p <- n / 1000
+err <- qnorm(0.975) * sqrt(p * (1 - p) / n)
+err
+
+##max(height)
+pred_max <- intercept_v + (weight * max(height_v))
+pred_max
+low_int_max <- pred_max - err
+low_int_max
+upp_int_max <- pred_max + err
+upp_int_max
+glue("{low_int_max}, {upp_int_max}")
+
+##min(height)
+pred_min <- intercept_v + (weight * min(height_v))
+pred_min
+low_int_min <- pred_min - err
+low_int_min
+upp_int_min <- pred_min + err
+upp_int_min
+glue("{low_int_min}, {upp_int_min}")
+
+##media(height)
+pred_med <- intercept_v + (weight * mean(height_v))
+pred_med
+low_int_med <- pred_med - err
+low_int_med
+upp_int_med <- pred_med + err
+upp_int_med
+glue("{low_int_med}, {upp_int_med}")
+
+#Hacer lo mismo pero para age <= 30 
+ed_alt <- data.frame(sample_lm$Age>30, sample_lm$height)
+height_ed <- ed_alt$sample_lm.height[ed_alt$sample_lm.Age...30==FALSE]
+df4 <- data.frame(ed_alt$sample_lm.height[ed_alt$sample_lm.Age...30==FALSE])
+height_ed
+typeof(height_ed)
+ed_pes <- data.frame(sample_lm$Age>30, sample_lm$weight)
+weight_ed <- ed_pes$sample_lm.weight[ed_pes$sample_lm.Age...30==FALSE]
+weight_ed
+
+mod4 <- lm(height_ed ~ weight_ed, data = df4)
+summary(mod4) #devielve los valores de la funcion
+plot(mod4)
+anova(mod4)  # pueba homocedasticidad (creo)
+intercept_ed <- mod2$coefficients[1]
+interceptss
+weight <- mod2$coefficients[2]
+weight
+n <- length(ed_pes)
+n
+p <- n / 1000
+err <- qnorm(0.975) * sqrt(p * (1 - p) / n)
+err
+
+##max(height)
+pred_max <- intercept_ed + (weight * max(height_ed))
+pred_max
+low_int_max <- pred_max - err
+low_int_max
+upp_int_max <- pred_max + err
+upp_int_max
+glue("{low_int_max}, {upp_int_max}")
+
+##min(height)
+pred_min <- intercept_ed + (weight * min(height_ed))
+pred_min
+low_int_min <- pred_min - err
+low_int_min
+upp_int_min <- pred_min + err
+upp_int_min
+glue("{low_int_min}, {upp_int_min}")
+
+##media(height)
+pred_med <- intercept_ed + (weight * mean(height_ed))
+pred_med
+low_int_med <- pred_med - err
+low_int_med
+upp_int_med <- pred_med + err
+upp_int_med
+glue("{low_int_med}, {upp_int_med}")
 
 
-mod1$residuals
-mod1$fitted.values
+##b 
+#General
+anova(mod1)[5]
+#Mujeres
+anova(mod2)[5]
+#Varones
+anova(mod3)[5]
+#<=30
+anova(mod4)[5]
 
-
-
-#hmax <- data.frame(max(sample_lm$height))
-#hmin <- data.frame(min(sample_lm$height))
-#hmean <- data.frame(mean(sample_lm$height))
-#nuevos_valores <- data.frame(hmax, hmin, hmean)
-#predict(mod1, newdata = hmax) #prediccion de los valores
-#predict(mod1, newdata = hmin) #prediccion de los valores
-#predict(mod1, newdata = hmean) #prediccion de los valores
-
-#intervalos de confianza
-mod2 <- predict(mod1, nuevos_valores, interval = "confidence")
-lines(nuevos_valores.edades$height, mod2[, 2], lty = 2)
-lines(nuevas.nuevos_valores$weight, mod2[, 3], lty = 2)
-
-# Intervalos de prediccion
-mod3 <- predict(regremod1sion, nuevos_valores, interval = "prediction")
-lines(nuevos_valores.edades$height, mod3[, 2], lty = 2, col = "red")
-lines(nuevas.nuevos_valores$weight, mod3[, 3], lty = 2, col = "red")
-# created by tools/
