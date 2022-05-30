@@ -90,3 +90,4 @@ public class JugadorBD {
 		}		
 	}
 }
+//terminado 

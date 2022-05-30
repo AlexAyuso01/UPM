@@ -20,12 +20,12 @@ public class CategoriaEdad {
 		this.nombre = nombre;
 		this.descripcion = descripcion;
 		this.edadMinima = edadMinima;
-		this.edadMaxima = edadMaxima;
+		this.edadMaxima = edadMaxima; 
 	}
 	
 	/**
 	 * Constructor que debe ser llamado para objetos que se crean nuevos en java (al hacer el insert, la
-	 * base de datos le asignará un id), pero hasta entonces su id será -1
+	 * base de datos le asignarï¿½ un id), pero hasta entonces su id serï¿½ -1
 	 * @param nombre
 	 * @param descripcion
 	 * @param edadMinima
