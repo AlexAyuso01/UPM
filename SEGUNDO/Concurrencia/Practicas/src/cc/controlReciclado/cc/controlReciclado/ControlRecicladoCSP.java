@@ -198,6 +198,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
           estado = Estado.LISTO;
         chNotificarPeso.out().write(null);
         break;
+
       case INCREMENTAR_PESO:
         // leer peticion 
         bloqueoGrua petincPeso = (bloqueoGrua) chIncrementarPeso.in().read();
@@ -210,12 +211,14 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         } else 
           gruasbloq.add(petincPeso);
         break;
+
       case NOTIFICAR_SOLTAR:
         // accediendo > 0 (por protocolo de llamada)
         chNotificarSoltar.in().read();
         // tratar peticion
         acceso--;
         break;
+
       case PREPARAR_SUSTITUCION:
         // estado == Estado.SUSTITUIBLE && accediendo == 0
         chPrepararSustitucion.in().read();
@@ -225,6 +228,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         chPrepararSustitucion.out().write(null);
         signaled = !signaled;
         break;
+        
       case NOTIFICAR_SUSTITUCION:
         // estado == Estado.SUSTITUYENDO && accediendo == 0 
         // leer peticion
