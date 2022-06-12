@@ -13,7 +13,7 @@ public class PlantaReciclaje {
       new ApiGruas(contenedor, MAX_GRUAS, MIN_P_GRUA, MAX_P_GRUA);
 
     ControlReciclado controlReciclado =
-      new ControlRecicladoMonitor(MAX_P_CONTENEDOR, MAX_P_GRUA);
+      new ControlRecicladoCSP(MAX_P_CONTENEDOR, MAX_P_GRUA);
 
     new ControladorContenedor(contenedor, controlReciclado).start();
 

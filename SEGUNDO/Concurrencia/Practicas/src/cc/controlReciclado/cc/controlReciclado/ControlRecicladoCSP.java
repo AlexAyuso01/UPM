@@ -4,11 +4,23 @@
 // realizar la entrega)
 package cc.controlReciclado;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.jcsp.lang.*;
 
 // importar estructuras de datos para almacenar peticiones aplazadas
-// 
+
 // COMPLETAD
+// clase de bloqueo de gruas
+class bloqueoGrua {
+  public One2OneChannel pet;
+  public int peso;
+  public bloqueoGrua(int peso) {
+    this.peso = peso;
+    pet = Channel.one2one();
+  }
+}
 
 public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
 
@@ -26,17 +38,17 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   private final Any2OneChannel chPrepararSustitucion;
   private final Any2OneChannel chNotificarSustitucion;
     
-  // para aplazar peticiones de incrementarPeso
-  // esta va de regalo
-  private static class PetIncrementarPeso {
-    public int p;
-    public One2OneChannel chACK;
+  // // para aplazar peticiones de incrementarPeso
+  // // esta va de regalo
+  // private static class PetIncrementarPeso {
+  //   public int p;
+  //   public One2OneChannel chACK;
 
-    PetIncrementarPeso (int p) {
-      this.p = p;
-      this.chACK = Channel.one2one();
-    }
-  }
+  //   PetIncrementarPeso (int p) {
+  //     this.p = p;
+  //     this.chACK = Channel.one2one();
+  //   }
+  // }
 
   public ControlRecicladoCSP(int max_p_contenedor,
                              int max_p_grua) {
@@ -45,11 +57,11 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
     MAX_P_GRUA       = max_p_grua;
 
     // creaciÃ³n de los canales 
-    // 
-    // 
-    // COMPLETAD
-    // 
-    //
+    chNotificarPeso = Channel.any2one();
+    chIncrementarPeso = Channel.any2one();
+    chNotificarSoltar = Channel.any2one();
+    chPrepararSustitucion = Channel.any2one();
+    chNotificarSustitucion = Channel.any2one();
 	
     // arranque del servidor desde el constructor OJO!!!
     new ProcessManager(this).start();
@@ -62,12 +74,15 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   // notificarPeso(p)
   public void notificarPeso(int p) throws IllegalArgumentException {
     // tratar PRE
-    // 
+    if(p <= 0 || p > MAX_P_GRUA) {
+      throw new IllegalArgumentException("Peso no valido");
+    }
+
     // COMPLETAD
-    //
-	
     // PRE OK, enviar peticiÃ³n
-    // COMPLETAD
+    chNotificarPeso.out().write(p);
+
+    chNotificarPeso.in().read();
   }
 
   //  PRE: 0 < p < MAX_P_GRUA
@@ -76,16 +91,16 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   // incrementarPeso(p)
   public void incrementarPeso(int p) throws IllegalArgumentException {
     // tratar PRE
-    // 
-    // COMPLETAD
-    //
+    if(p <= 0 || p > MAX_P_GRUA) {
+      throw new IllegalArgumentException("Peso no valido");
+    } 
 	
     // PRE OK, creamos peticion para el servidor
-    // COMPLETAD
+    bloqueoGrua petincPeso = new bloqueoGrua(p);
     // enviamos peticion
-    // COMPLETAD
+    chIncrementarPeso.out().write(petincPeso);
     // esperar confirmacion
-    // COMPLETAD
+    petincPeso.pet.in().read();
   }
 
   //  PRE: --
@@ -93,7 +108,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   // notificarSoltar()
   public void notificarSoltar() {
     // enviar peticion
-    // COMPLETAD
+    chNotificarSoltar.out().write(null);
   }
 
   //  PRE: --
@@ -101,7 +116,9 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   // prepararSustitucion()
   public void prepararSustitucion() {
     // enviar peticion
-    // COMPLETAD
+    chPrepararSustitucion.out().write(null);
+    // esperar confirmacion
+    chPrepararSustitucion.in().read();
   }
 
   //  PRE: --
@@ -109,15 +126,18 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   // notificarSustitucion()
   public void notificarSustitucion() {
     // enviar peticion
-    // COMPLETAD
+    chNotificarSustitucion.out().write(null);
   }
 
   // SERVIDOR
   public void run() {
     // estado del recurso
-    // 
-    // COMPLETAD
-    // 
+    int peso = 0;
+    int acceso = 0;
+    Estado estado = Estado.LISTO;
+    Queue<bloqueoGrua> gruasbloq;
+    boolean signaled = false;
+
 
     // para recepciÃ³n alternativa condicional
     Guard[] entradas = {
@@ -141,91 +161,102 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
     sincCond[NOTIFICAR_SUSTITUCION] = true;
 
     // creamos colecciÃ³n para almacenar peticiones aplazadas
-    // 
-    // COMPLETAD
-	
-
+    gruasbloq = new LinkedList<bloqueoGrua>();
     // bucle de servicio
     while (true) {
       // vars. auxiliares para comunicaciÃ³n con clientes
-      //
-      // COMPLETAD
+      signaled = !signaled;
 
       // actualizaciÃ³n de condiciones de recepciÃ³n
-      // 
-      // COMPLETAD
-      // 
+      // Notificar peso
+      if (!estado.equals(Estado.SUSTITUYENDO))
+        sincCond[NOTIFICAR_PESO] = true;
+       else 
+        sincCond[NOTIFICAR_PESO] = false;
+      // Incrementar peso
+      if (!estado.equals(Estado.SUSTITUYENDO))
+        sincCond[INCREMENTAR_PESO] = true;
+       else 
+        sincCond[INCREMENTAR_PESO] = false;
+      // preparar sustitucion
+      if (acceso == 0 && estado.equals(Estado.SUSTITUIBLE))
+        sincCond[PREPARAR_SUSTITUCION] = true;
+       else
+        sincCond[PREPARAR_SUSTITUCION] = false;
+      
+      
       
 
       switch (servicios.fairSelect(sincCond)) {
       case NOTIFICAR_PESO:
         // estado != Estado.SUSTITUYENDO
         // leer peticiÃ³n
-        // COMPLETAD
-        // procesar peticiÃ³n
-        // 
-        //
-        // COMPLETAD
-        //
-        // 
+        int pnp = (int) chNotificarPeso.in().read();
+        if(peso + pnp > MAX_P_CONTENEDOR)
+          estado = Estado.SUSTITUIBLE;
+        else if (peso + pnp <= MAX_P_CONTENEDOR)
+          estado = Estado.LISTO;
+        chNotificarPeso.out().write(null);
         break;
       case INCREMENTAR_PESO:
         // leer peticion 
-        // COMPLETAD
-        // tratar peticiÃ³n, y aplazar si no se cumple CPRE
-        // o aplazar directamente
-        //
-        //
-        //
-        // COMPLETAD
-        //
-        //
-        //
+        bloqueoGrua petincPeso = (bloqueoGrua) chIncrementarPeso.in().read();
+        int pip = petincPeso.peso; 
+        // incrementar peso
+        if(petincPeso != null && peso + pip <= MAX_P_CONTENEDOR) {
+          peso += pip;
+          acceso++;
+          chIncrementarPeso.out().write(null);
+        } else 
+          gruasbloq.add(petincPeso);
         break;
       case NOTIFICAR_SOLTAR:
         // accediendo > 0 (por protocolo de llamada)
-        // leer peticion
-        // COMPLETAD
+        chNotificarSoltar.in().read();
         // tratar peticion
-        // COMPLETAD
+        acceso--;
         break;
       case PREPARAR_SUSTITUCION:
         // estado == Estado.SUSTITUIBLE && accediendo == 0
-        // leer peticion
+        chPrepararSustitucion.in().read();
         // COMPLETAD
         // tratar peticion
-        // COMPLETAD
+        estado = Estado.SUSTITUYENDO;
+        chPrepararSustitucion.out().write(null);
+        signaled = !signaled;
         break;
       case NOTIFICAR_SUSTITUCION:
         // estado == Estado.SUSTITUYENDO && accediendo == 0 
         // leer peticion
-        // COMPLETAD
+        chNotificarSustitucion.in().read();
         // tratar peticion
-        // 
-        // COMPLETAD
+        peso = 0;
+        estado = Estado.LISTO;
+        acceso = 0;
         break;
       } // switch
-
-      // tratamiento de peticiones aplazadas
-      // 
-      // 
-      // 
-      // 
-      // 
-      // 
-      // COMPLETAD
-      // 
-      // 
-      // 
-      // 
-      // 
-      // 
-      // 
-
+      while(signaled){
+        signaled = !signaled;
+        while(!gruasbloq.isEmpty()){
+          bloqueoGrua grua =gruasbloq.peek();
+          if(grua.peso + peso <= MAX_P_CONTENEDOR){
+            signaled = !signaled;
+            peso += grua.peso;
+            acceso++;
+            gruasbloq.remove();
+            grua.pet.out().write(null);
+          } else {
+            gruasbloq.remove();
+            gruasbloq.add(grua);
+          }
+        }
+      }
       // si estamos aqui esque no quedan peticiones 
       // aplazadas que podrian ser atendidas!!!!!!!!!!!!!!!!!!
 	    
     } // bucle servicio
   } // run() SERVER
 } // class ControlRecicladoCSP
+
+
 
