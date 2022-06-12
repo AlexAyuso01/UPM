@@ -14,20 +14,24 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
   private static int acceso;
 
   private Monitor mutex;
-  private LinkedList<bloqueoContenedor> contenedoresbloq;
+  private Monitor.Cond condNP;
+  private Monitor.Cond condPS;
   private LinkedList<bloqueoGrua> gruasbloq; 
-  //creo que sobran 
-  //private ApiContenedor contenedor;
-  //private ApiGruas grua;
-
 
   public ControlRecicladoMonitor (int max_p_contenedor,
                                   int max_p_grua) {
     MAX_P_CONTENEDOR = max_p_contenedor;
     MAX_P_GRUA = max_p_grua;
     this.mutex = new Monitor();
-    this.contenedoresbloq = new LinkedList<bloqueoContenedor>();
+    condNP = mutex.newCond();
+    condPS = mutex.newCond();
     this.gruasbloq = new LinkedList<bloqueoGrua>();
+
+    peso = 0;
+    estado = Estado.LISTO;
+    acceso = 0;
+
+
   }
   
  public void notificarPeso (int p) throws IllegalArgumentException{
@@ -35,22 +39,21 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
   //CPRE = self.estado != sustituyendo 
   //CPOST = self.peso = selfpre.peso ^ self.accediendo = selfpre.accediendo ^ selfpre.peso + p > MAX_P_CONTENEDOR => self.estado = sustituible ^ selfpre.peso + p <= MAX_P_CONTENEDOR => self.estado = listo 
   mutex.enter();
-    if (p < 0 || p > MAX_P_CONTENEDOR) {
+    if (p <= 0 || p > MAX_P_CONTENEDOR) {
       mutex.leave();
       throw new IllegalArgumentException("Peso incorrecto");
     }
-    if (estado != Estado.SUSTITUYENDO) {
-      if (peso + p> MAX_P_CONTENEDOR) {
-        estado = Estado.SUSTITUIBLE;
-      } else {
-        estado = Estado.LISTO;
-      }
-      desbloqueo_gruas();
-    } else {
-      bloqueoGrua bloqueo = new bloqueoGrua(p);
-      gruasbloq.add(bloqueo);
-      bloqueo.cond.await();
+    if(estado == Estado.SUSTITUYENDO) {  // if !CPRE -> se bloquea y se añade a la lista de thrd esperando 
+      condNP.await();
     }
+     //se ouede notificar 
+    if(peso + p > MAX_P_CONTENEDOR){
+      estado = Estado.SUSTITUIBLE;
+    } else if (peso + p <= MAX_P_CONTENEDOR){
+      estado = Estado.LISTO;
+    }
+    desbloqueo_gruas();
+    desbloqueo_contenedores();
     mutex.leave();
 
 }
@@ -77,23 +80,19 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
   // }
   public void incrementarPeso(int p) throws IllegalArgumentException {
     mutex.enter();
-    if (p < 0 || p > MAX_P_GRUA) {
+    if (p <= 0 || p > MAX_P_GRUA) {
       mutex.leave();
       throw new IllegalArgumentException("Peso incorrecto");
     }
-    if (estado != Estado.SUSTITUYENDO) {
-      peso += p;
-      if (peso > MAX_P_CONTENEDOR) {
-        estado = Estado.SUSTITUIBLE;
-      } else {
-        estado = Estado.LISTO;
-      }
-      desbloqueo_gruas();
-    } else {
+    if (!(!estado.equals(Estado.SUSTITUYENDO) && peso + p <= MAX_P_CONTENEDOR)) {
       bloqueoGrua bloqueo = new bloqueoGrua(p);
       gruasbloq.add(bloqueo);
       bloqueo.cond.await();
     }
+      peso += p;
+      acceso++; 
+      desbloqueo_gruas();
+      desbloqueo_contenedores();
     mutex.leave();
   }
   // public void incrementarPeso(int p) throws IllegalArgumentException {
@@ -121,6 +120,7 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
     mutex.enter();
     acceso--;
     desbloqueo_gruas();
+    desbloqueo_contenedores();
     mutex.leave();
   }
 //CPRE = cierto
@@ -129,12 +129,10 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
   //CPRE = self = (_,sustituible, 0)
   public void prepararSustitucion(){ //si el estado == sustituible y el acceso == 0 entonces se puede sustituir (estado => sustituyendo) sino se bloquea la llamada
     mutex.enter();
-    if(estado == Estado.SUSTITUIBLE && acceso == 0){
+    if(estado.equals(Estado.SUSTITUIBLE) && acceso == 0){
       estado = Estado.SUSTITUYENDO;
     } else {
-      bloqueoContenedor bc = new bloqueoContenedor(Estado.SUSTITUIBLE);
-      contenedoresbloq.add(bc);
-      bc.cond.await();
+      condPS.await();
     }
     mutex.leave();
   }
@@ -144,26 +142,15 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
     peso = 0;
     estado = Estado.LISTO;
     acceso = 0;
+    desbloqueo_gruas();
     desbloqueo_contenedores();
     mutex.leave();
   }
 
   //METODOS AUXILIARES 
-
-  public class bloqueoContenedor {
-    public Monitor.Cond cond;
-    public Estado estado;
-
-    public bloqueoContenedor(Estado estado){
-      this.cond = mutex.newCond();
-      this.estado = estado;
-    }
-  }
-
   public class bloqueoGrua {
     public Monitor.Cond cond;
     public int peso;
-    public Estado estado;
 
     public bloqueoGrua(int peso){
       this.cond = mutex.newCond();
@@ -173,17 +160,10 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
 
 
   private void desbloqueo_contenedores(){  //desbloquea todos los contenedores que estan esperando comprobando las cpres
-    boolean signaled = false;
-    // RECORREMOS LA LISTA DE BLOQUEOS DE CONTENEDORES 
-    LinkedList<bloqueoContenedor> bcRead = new LinkedList<bloqueoContenedor>();
-    for(int i = 0; i < contenedoresbloq.size() && !signaled; i++){
-      bloqueoContenedor bloq = contenedoresbloq.get(i);
-      if((bloq.estado != Estado.SUSTITUYENDO || (bloq.estado == Estado.SUSTITUIBLE && acceso == 0)) && bloq.cond.waiting() > 0 ){ // if CPRE desbloqueo()
-        bcRead.add(bloq);
-        signaled = !signaled;
-        contenedoresbloq.remove(i);
-        bloq.cond.signal();
-      }
+    if(!estado.equals(Estado.SUSTITUYENDO) && condNP.waiting() > 0){
+      condNP.signal();
+    } else if(acceso == 0 && estado.equals(Estado.SUSTITUIBLE) && condPS.waiting() > 0){
+      condPS.signal();
     }
   }
   private void desbloqueo_gruas(){
@@ -192,7 +172,7 @@ public final class ControlRecicladoMonitor implements ControlReciclado {
     LinkedList<bloqueoGrua> bgRead = new LinkedList<bloqueoGrua>();
     for(int i = 0; i < gruasbloq.size() && !signaled; i++){
       bloqueoGrua bloq = gruasbloq.get(i);
-      if(bloq.peso<= MAX_P_CONTENEDOR && estado != Estado.SUSTITUYENDO){
+      if(bloq.peso + peso <= MAX_P_CONTENEDOR && !signaled){
         bgRead.add(bloq);
         signaled = !signaled;
         gruasbloq.remove(i);
