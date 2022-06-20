@@ -88,10 +88,10 @@ org 50000
 textoA_Comprime: data "He comprobado la longitud de la cadena y es correcta. He comprobado mediante comprime y descomprime por separado si funciona correctamente y funciona bien. Al llamar a verifica comprime y descomprime la cadena sin ningún problema, realizando los checksum de la cadena original y después de ser comprimida y descomprimida y son iguales, pues no tienen en cuenta el ABCDEFG del final.\0"
 textoB_Comprime: data "0123456789\0"
 textoC_Comprime: data "tres tristes tigres comen trigo en un trigal, el primer tigre que...\0"
-
+textoD_Comprime: data "abcdefghijklmnopqrst\0"
 Comprime_Prueba:	
 			LEA (r30,PILA)
-			LEA (r11, textoC_Comprime)	
+			LEA (r11, textoA_Comprime)	
 			addu r12, r0, 0x4F0
 			PUSH(r12)
 			PUSH(r11)
@@ -99,7 +99,19 @@ Comprime_Prueba:
 			POP(r11)
 			POP(r12)
 			stop
-
+Verifica_Prueba:	
+			LEA (r30,PILA)
+			LEA (r11, textoA_Comprime)	
+			addu r12, r0, 1000
+			addu r13, r0, 2000
+			PUSH(r13)
+			PUSH(r12)
+			PUSH(r11)
+			bsr Verifica  
+			POP(r11)
+			POP(r12)
+			POP(r13)
+			stop
 ;Datos para descomprime
 ;CMPR: data  0x0601015E, 0x4141A000, 0x41414141, 0x00004141, 0x00C85AC0, 0xAB000095
 CMPR: data 0x0b010044, 0x10102400, 0x74004000, 0x20736572
@@ -302,8 +314,8 @@ FinCS:              or r29, r14, r14		; lo devuelvo en r29
 ; r3 = tamanio del texto (sin comprimir)
 ; 
 
-Comprime:             CREAMARCO()
-                    subu r30, r30, 16
+Comprime:           CREAMARCO()
+                    subu r30, r30, 20
                     ld r20, r31, 8          ;hca puntero de texto
                     or r22, r20, r20        ;hca copia de Puntero de TEXTO
                     ld r21, r31, 12            ; Referencia a COMPRDO
@@ -329,6 +341,7 @@ Comprime:             CREAMARCO()
 					bsr LongCad				; Determino la longitud de TEXTO
 					POP(r20)
 					or r3, r29, r29        ;hca operacion innecesaria
+					st r3, r31, -20
 					or r4, r29, r29			; Guardo en r4 L(TEXTO)
 
 Ajuste:				divu r5, r4, 4			; Bucle para ajuste en exceso
@@ -356,6 +369,7 @@ Chars8xM:			cmp r17, r8, 8			; Miro si ya he copiado los 8 primeros caracteres
 ;hca borrado bucleCMP duplicado
 					
 bucleCMP:			ld r10, r31, -4
+					ld r3, r31, -20
                     cmp r17, r8, r3         ;hca porque tienes dos bucleCMP???? si hemos copiado todo cargamos ultimo byte
 					bb1 ge, r17, carga_lmb
                     PUSH(r21)
@@ -418,7 +432,8 @@ carga_lmb:			ld r7, r31, -8
                     st r6, r31, -16
                     st r12, r31, -12
 
-Copia_cab:			extu r13, r3, 8<0>
+Copia_cab:			ld r3, r31, -20
+					extu r13, r3, 8<0>
 					st.b r13, r21, 0			; Guardo el byte mas significativo de L
 					extu r13, r3, 8<8>
 					st.b r13, r21, 1			; Guardo el byte menos significativo de L
@@ -469,8 +484,8 @@ Reinicio_byte:		ld r7, r31, -8
                     st r12, r31, -12
                     br bucleCMP
                     
-suma_total: 		or r29, r0, 0
-					addu r29, r28, r6
+suma_total: 		addu r29, r28, r6
+term:               st.b r0, r21, r29		
 					ROMPEMARCO()
 					jmp(r1)	 
 
@@ -493,6 +508,7 @@ Descomprime:        CREAMARCO()
                     ld r20, r31, 8          ; r20<-comp
                     ld r21, r31, 12         ; r21<-desc
                                             ; Inicializo resto de registros: 
+                    or r6, r0, 0
                     ld.bu r4, r20, 1        ; tamano byte 1
                     mulu r4, r4, 0x100      ; desplazo 
                     ld.bu r5, r20, 0        ; tamano byte 0
@@ -585,22 +601,22 @@ SizeCalc:   	    PUSH(r20)
                     or r4, r30, r30         ; copio pos inicio en pila de PilaCom
                     subu r30, r30, r11      ; reservo PilaDes (igual que PilaCom)
                     or r5, r30, r30         ; guardo inicio PilaDes 
-                    
+ver:                    
                     st r5, r31, -4          ;PilaDes en MdP
                     st r4, r31, -8          ;PilaCom en MdP
 
-CompNDesc:          PUSH(r4)
-                    PUSH(r20)
+CompNDesc:          PUSH(r4)                ; dir texto comprimido
+                    PUSH(r20)               ;texto a comprimir
                     bsr Comprime
                     POP(r20)
                     POP(r4)
-                    ld r5, r31, -4
-                    PUSH(r5)
-                    PUSH(r4)
+                pr: ld r5, r31, -4
+                    PUSH(r5)                ; dir texto descomprimido
+                    PUSH(r4)                ; dir texto a descomprimir
                     bsr Descomprime
                     POP(r4)
                     POP(r5)
-
+                                 
 SizeCheck:          ld r11, r31, -12 
                     cmp r17, r29, r11       ; comparo tamanyos
                     bb1 ne, r17, VMAL       ; tamanyos!=? vmal : empiezoChecksums
