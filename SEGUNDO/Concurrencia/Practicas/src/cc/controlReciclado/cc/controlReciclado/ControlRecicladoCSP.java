@@ -136,7 +136,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
     int acceso = 0;
     Estado estado = Estado.LISTO;
     Queue<bloqueoGrua> gruasbloq;
-    boolean signaled = false;
+    boolean signaled = true;
 
 
     // para recepciÃ³n alternativa condicional
@@ -165,8 +165,6 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
     // bucle de servicio
     while (true) {
       // vars. auxiliares para comunicaciÃ³n con clientes
-      signaled = !signaled;
-
       // actualizaciÃ³n de condiciones de recepciÃ³n
       // Notificar peso
       if (!estado.equals(Estado.SUSTITUYENDO))
@@ -196,7 +194,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
           estado = Estado.SUSTITUIBLE;
         else if (peso + pnp <= MAX_P_CONTENEDOR)
           estado = Estado.LISTO;
-        chNotificarPeso.out().write(null);
+          chNotificarPeso.out().write(null);
         break;
 
       case INCREMENTAR_PESO:
@@ -207,7 +205,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         if(petincPeso != null && peso + pip <= MAX_P_CONTENEDOR) {
           peso += pip;
           acceso++;
-          chIncrementarPeso.out().write(null);
+          petincPeso.pet.out().write(null);
         } else 
           gruasbloq.add(petincPeso);
         break;
@@ -226,9 +224,9 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         // tratar peticion
         estado = Estado.SUSTITUYENDO;
         chPrepararSustitucion.out().write(null);
-        signaled = !signaled;
+        signaled = false;
         break;
-        
+
       case NOTIFICAR_SUSTITUCION:
         // estado == Estado.SUSTITUYENDO && accediendo == 0 
         // leer peticion
@@ -239,18 +237,18 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         acceso = 0;
         break;
       } // switch
-      while(signaled){
-        signaled = !signaled;
+      while(signaled){ // arreglar 
+        signaled = false;
         while(!gruasbloq.isEmpty()){
-          bloqueoGrua grua =gruasbloq.peek();
+          bloqueoGrua grua = gruasbloq.peek();
           if(grua.peso + peso <= MAX_P_CONTENEDOR){
-            signaled = !signaled;
+            signaled = true;
             peso += grua.peso;
             acceso++;
-            gruasbloq.remove();
+            gruasbloq.poll();
             grua.pet.out().write(null);
           } else {
-            gruasbloq.remove();
+            gruasbloq.poll();
             gruasbloq.add(grua);
           }
         }
