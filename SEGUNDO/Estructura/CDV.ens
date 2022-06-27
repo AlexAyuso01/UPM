@@ -98,6 +98,14 @@ Comprime_Prueba:
 			bsr Comprime  
 			POP(r11)
 			POP(r12)
+            p2:LEA (r30,PILA)
+			LEA (r11, textoA_Comprime)	
+			addu r12, r0, 0x4F0
+			PUSH(r12)
+			PUSH(r11)
+			bsr Comprime  
+			POP(r11)
+			POP(r12)
 			stop
 Verifica_Prueba:	
 			LEA (r30,PILA)

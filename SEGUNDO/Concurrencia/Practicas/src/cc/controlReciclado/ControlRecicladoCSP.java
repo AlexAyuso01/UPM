@@ -37,7 +37,7 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
   private final Any2OneChannel chNotificarSoltar;
   private final Any2OneChannel chPrepararSustitucion;
   private final Any2OneChannel chNotificarSustitucion;
-    
+  
   // // para aplazar peticiones de incrementarPeso
   // // esta va de regalo
   // private static class PetIncrementarPeso {
@@ -237,25 +237,21 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         acceso = 0;
         break;
       } // switch
-      while(signaled){ // arreglar 
-        signaled = false;
-        while(!gruasbloq.isEmpty()){
-          bloqueoGrua grua = gruasbloq.peek();
-          if(grua.peso + peso <= MAX_P_CONTENEDOR){
-            signaled = true;
-            peso += grua.peso;
-            acceso++;
-            gruasbloq.poll();
-            grua.pet.out().write(null);
-          } else {
-            gruasbloq.poll();
-            gruasbloq.add(grua);
-          }
+      int i = 0;
+      while(gruasbloq.size() > i){  
+        i++;
+        bloqueoGrua grua = gruasbloq.poll();
+        if(grua.peso + peso <= MAX_P_CONTENEDOR && !estado.equals(Estado.SUSTITUYENDO)){
+          signaled = true;
+          peso += grua.peso;
+          acceso++;           
+          grua.pet.out().write(null);
+        } else {
+          gruasbloq.add(grua);
         }
       }
       // si estamos aqui esque no quedan peticiones 
-      // aplazadas que podrian ser atendidas!!!!!!!!!!!!!!!!!!
-	    
+      // aplazadas que podrian ser atendidas!!!!!!!!!!!!!!!!!!    
     } // bucle servicio
   } // run() SERVER
 } // class ControlRecicladoCSP
