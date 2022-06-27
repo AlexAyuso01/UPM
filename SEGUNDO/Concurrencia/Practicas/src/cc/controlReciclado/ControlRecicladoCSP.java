@@ -136,7 +136,6 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
     int acceso = 0;
     Estado estado = Estado.LISTO;
     Queue<bloqueoGrua> gruasbloq;
-    boolean signaled = true;
 
 
     // para recepciÃ³n alternativa condicional
@@ -224,7 +223,6 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         // tratar peticion
         estado = Estado.SUSTITUYENDO;
         chPrepararSustitucion.out().write(null);
-        signaled = false;
         break;
 
       case NOTIFICAR_SUSTITUCION:
@@ -242,7 +240,6 @@ public class ControlRecicladoCSP implements ControlReciclado, CSProcess {
         i++;
         bloqueoGrua grua = gruasbloq.poll();
         if(grua.peso + peso <= MAX_P_CONTENEDOR && !estado.equals(Estado.SUSTITUYENDO)){
-          signaled = true;
           peso += grua.peso;
           acceso++;           
           grua.pet.out().write(null);
