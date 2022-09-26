@@ -1,0 +1,44 @@
+SHOW TABLES:
+SELECT *  ==> * = select de todo ?sub ? pre ?obj
+WHERE{
+  ?sub ?pre ?obj
+} LIMIT 1000
+
+TRIPLETAS DONDE BRAD PITT ES OBJETO:
+SELECT DISTINCT ?p ?obj
+WHERE 
+{
+<http://es.dbpedia.org/resource/Brad_Pitt> ?p ?obj
+}
+
+MAS QUERYS:
+SELECT DISTINCT ?p ?obj
+WHERE 
+{
+<http://es.dbpedia.org/resource/Brad_Pitt> a <http://dbpedia.org/ontology/Person> .
+<http://es.dbpedia.org/resource/Brad_Pitt> <http://es.dbpedia.org/property/ocupación> <http://es.dbpedia.org/resource/Actor> .
+<http://es.dbpedia.org/resource/Brad_Pitt> ?p ?obj .
+}
+
+SELECT COUNT (DISTINCT ?actor)
+WHERE 
+{
+?actor a <http://dbpedia.org/ontology/Person> .
+?actor <http://es.dbpedia.org/property/ocupación> <http://es.dbpedia.org/resource/Actor> .
+?actor ?p ?obj .
+
+} LIMIT 1000
+
+con UNION == OR :
+SELECT DISTINCT * 
+WHERE 
+{
+?actor a <http://dbpedia.org/ontology/Person> .
+#?actor <http://es.dbpedia.org/property/ocupación> <http://es.dbpedia.org/resource/Actor> .
+?actor rdfs:label ?label .
+?movie <http://es.dbpedia.org/property/starring>|<http://dbpedia.org/ontology/starring> ?actor .
+{?movie <http://es.dbpedia.org/property/country> <http://es.dbpedia.org/resource/Spain>}
+UNION
+{?movie <http://es.dbpedia.org/property/país> "España"@es}
+#?actor ?p ?obj .
+} 

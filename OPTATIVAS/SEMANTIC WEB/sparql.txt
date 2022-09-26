@@ -1,0 +1,28 @@
+1
+SELECT DISTINCT * WHERE {
+  <http://dbpedia.org/ontology/Politician> ?a ?politician .
+} 
+
+2
+SELECT DISTINCT * WHERE {
+  <http://dbpedia.org/ontology/Politician> ?a ?politician .
+  filter(?a != rdf:type) .
+} 
+
+3
+SELECT COUNT(DISTINCT ?politician )WHERE {
+  <http://dbpedia.org/ontology/Politician> ?a ?politician .
+  filter(?a != rdf:type) .
+} => 35
+
+4 
+SELECT ?a ?politician WHERE {
+  <http://dbpedia.org/ontology/Politician> ?a ?politician .
+  filter(?a != rdf:type) .
+} 
+
+5
+SELECT DISTINCT ?a COUNT(?a) AS ?count WHERE {
+  <http://dbpedia.org/ontology/Politician> ?a ?politician .
+  filter(?a != rdf:type) .
+}
