@@ -1,1 +1,2 @@
-b 28 90 85 56 r 131 81 1 0 
+HOLA 1 2 3 SOY 2 3 4
+alejandro 3 4 5
