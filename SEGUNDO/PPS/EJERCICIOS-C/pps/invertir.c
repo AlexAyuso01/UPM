@@ -16,11 +16,11 @@ int main(int argc, char ** argv){
     while(!feof(f)){
         ok = fscanf(f,"%d",&cadena1[n]);
         cadena2[n] = cadena1[n];
-        if(ok == 1){
+        if(ok == 1){ //leo un numero
             cont++;
             result[i]=cadena2[n];
             i++;
-        } else {
+        } else { // leo algo que no sea un numero 
             if(cont != 0){
                 aux = i;
                 aux2 = aux;
