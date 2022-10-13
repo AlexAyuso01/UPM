@@ -51,7 +51,6 @@ int main(int argc, char ** argv){
     }
     if (wsnum != 0){
         printf("%d\n",wsnum);
-        printf("hola me he colado\n");
         while(i > 0){
             i--;
             printf("%d ",result[i]);
