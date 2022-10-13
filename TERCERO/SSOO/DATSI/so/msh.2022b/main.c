@@ -44,6 +44,7 @@ int main(void)
 		if (ret == -1) continue;	/* Syntax error */
 		argvc = ret - 1;		/* Line */
 		if (argvc == 0) continue;	/* Empty line */
+		
 #if 1
 /*
  * LAS LINEAS QUE A CONTINUACION SE PRESENTAN SON SOLO

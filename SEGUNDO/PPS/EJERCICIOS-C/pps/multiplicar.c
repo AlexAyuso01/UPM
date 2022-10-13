@@ -16,7 +16,7 @@ int main(int argc, char** argv){
         int j = 0;
         while(j < n){
             fscanf(f, "%d", &matriz1[i][j]);
-            printf("%d",matriz1[i][j]);
+            printf("%d ",matriz1[i][j]);
             j++;
         }
         printf("\n");
@@ -27,7 +27,7 @@ int main(int argc, char** argv){
         int j = 0;
         while(j < p){
             fscanf(f, "%d", &matriz2[i][j]);
-            printf("%d",matriz2[i][j]);
+            printf("%d ",matriz2[i][j]);
             j++;
         }
         printf("\n");
