@@ -21,6 +21,9 @@
 #include <stddef.h>			/* NULL */
 #include <stdio.h>			/* setbuf, printf */
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 extern int obtain_order();		/* See parser.y for description */
 
@@ -53,8 +56,18 @@ int main(void)
  */
 		for (argvc = 0; (argv = argvv[argvc]); argvc++) {
 			for (argc = 0; argv[argc]; argc++)
-				printf("%s ", argv[argc]);
-			printf("\n");
+			// mirar si argumento[0] es mandato interno == 0 -> mandato entero  
+			// si no es: 
+			// como es el 
+			if (argv[argc] != NULL){
+				int pid = fork();
+				if (pid == 0){
+					execvp(argv[0], argv);
+					exit(0);
+				} else {
+					wait(NULL);
+				}
+			}
 		}
 		if (filev[0]) printf("< %s\n", filev[0]);/* IN */
 		if (filev[1]) printf("> %s\n", filev[1]);/* OUT */

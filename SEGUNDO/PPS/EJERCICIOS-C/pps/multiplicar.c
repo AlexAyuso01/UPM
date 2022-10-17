@@ -9,13 +9,13 @@ int main(int argc, char** argv){
     int ok = 0;
     FILE * f;
     f = fopen("matrices.txt","r");
-    fscanf(f, "%d %d %d", &m, &n, &p);
+    scanf("%d %d %d", &m, &n, &p);
     int matriz1[m][n], matriz2[n][p], resultado[m][p];
     int i = 0;
     while (i < m){
         int j = 0;
         while(j < n){
-            fscanf(f, "%d", &matriz1[i][j]);
+            scanf("%d", &matriz1[i][j]);
             printf("%d ",matriz1[i][j]);
             j++;
         }
@@ -26,7 +26,7 @@ int main(int argc, char** argv){
     while (i < n){
         int j = 0;
         while(j < p){
-            fscanf(f, "%d", &matriz2[i][j]);
+            scanf("%d", &matriz2[i][j]);
             printf("%d ",matriz2[i][j]);
             j++;
         }

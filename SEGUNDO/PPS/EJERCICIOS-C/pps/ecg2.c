@@ -17,7 +17,7 @@ int main (int argc, char** argv){
     }
     else{
         int n = 1;
-        while (fscanf(F,"%lf %lf %lf",&a, &b, &c) != EOF){
+        while (scanf("%lf %lf %lf",&a, &b, &c) != EOF){
             resolver (a, b, c, px1, px2);
             printf ("caso %d\n",n);
             n++;
