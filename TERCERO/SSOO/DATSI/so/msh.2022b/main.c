@@ -24,9 +24,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 
 extern int obtain_order();		/* See parser.y for description */
-
+int esmandatointerno(int argc, char **argv);
+char dir[1024];
 int main(void)
 {
 	char ***argvv = NULL;
@@ -55,18 +57,22 @@ int main(void)
  * argvv Y filev. ESTAS LINEAS DEBERAN SER ELIMINADAS.
  */
 		for (argvc = 0; (argv = argvv[argvc]); argvc++) {
-			for (argc = 0; argv[argc]; argc++)
+			for (argc = 0; argv[argc]; argc++){
 			// mirar si argumento[0] es mandato interno == 0 -> mandato entero  
 			// si no es: 
 			// como es el 
 			if (argv[argc] != NULL){
-				int pid = fork();
-				if (pid == 0){
-					execvp(argv[0], argv);
-					exit(0);
-				} else {
+				if (esmandatointerno(argc, argv) != 0){
 					wait(NULL);
+				} else {
+					int pid = fork();
+					if (pid == 0){
+						execvp(argv[0], argv);
+					} else{
+						wait(NULL);
+					}
 				}
+			}
 			}
 		}
 		if (filev[0]) printf("< %s\n", filev[0]);/* IN */
@@ -79,5 +85,36 @@ int main(void)
 #endif
 	}
 	exit(0);
+	return 0;
+}
+// check if the command is an internal command
+int esmandatointerno(int argc, char **argv){ // NO FUNCIONA AUN PERO PORQUE NO SE ACTUALIZA EL CURRENT DIRECTORY
+	//checks if it is the cd unix command, if it is, it changes the directory
+	if (strcmp(argv[0], "cd") == 0){
+		if (argc == 0){ // if there is no argument, it changes to the home directory
+			chdir(getenv("HOME"));
+		} else if (argc == 1){ // if there is one argument, it changes to the directory specified
+			//get the current directory and store it in dir 
+            getcwd(dir, 1024);
+			//concatenate the current directory with the argument
+			printf("%s\n", dir);
+			strcat(dir, "/");
+			strcat(dir, argv[1]);
+			//change the directory to dir
+			chdir(dir);
+			printf("%s\n", dir);
+			printf("%d\n", argc);
+		} else { // if there are more than one argument, it prints an error
+			printf("cd: too many arguments\n");
+		}
+		return 1;
+	} else if (strcmp(argv[0], "exit") == 0){
+		exit(0);
+	} else if (strcmp(argv[0], "umask") == 0){
+		printf("umask: not implemented");
+		return 1;
+	} else if (strcmp(argv[0], "limit") == 0){
+		return 1;
+	}
 	return 0;
 }
