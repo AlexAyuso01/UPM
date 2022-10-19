@@ -25,10 +25,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 
 extern int obtain_order();		/* See parser.y for description */
 int esmandatointerno(int argc, char **argv);
-char dir[1024];
+void getCurrentDirectory(int argc, char **argv);
+
 int main(void)
 {
 	char ***argvv = NULL;
@@ -94,16 +96,7 @@ int esmandatointerno(int argc, char **argv){ // NO FUNCIONA AUN PERO PORQUE NO S
 		if (argc == 0){ // if there is no argument, it changes to the home directory
 			chdir(getenv("HOME"));
 		} else if (argc == 1){ // if there is one argument, it changes to the directory specified
-			//get the current directory and store it in dir 
-            getcwd(dir, 1024);
-			//concatenate the current directory with the argument
-			printf("%s\n", dir);
-			strcat(dir, "/");
-			strcat(dir, argv[1]);
-			//change the directory to dir
-			chdir(dir);
-			printf("%s\n", dir);
-			printf("%d\n", argc);
+			getCurrentDirectory(argc, argv);
 		} else { // if there are more than one argument, it prints an error
 			printf("cd: too many arguments\n");
 		}
@@ -118,3 +111,20 @@ int esmandatointerno(int argc, char **argv){ // NO FUNCIONA AUN PERO PORQUE NO S
 	}
 	return 0;
 }
+//function that gets the current directory and changes it to the specified directory
+void getCurrentDirectory(int argc, char **argv){
+	//get the current directory and store it in dir 
+	//char dir[PATH_MAX];
+	//getcwd(dir,sizeof(dir));
+	char *cwd = getcwd(NULL,NULL);
+	//concatenate the current directory with the argument
+	printf("%s\n", cwd);
+	strcat(cwd, "/");
+	strcat(cwd, argv[1]);
+	//change the directory to dir
+	chdir(cwd);
+	printf("%s\n", cwd);
+	printf("%d\n", argc);
+	//free(dir);
+}
+

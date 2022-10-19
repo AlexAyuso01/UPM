@@ -19,7 +19,7 @@ int main(int argc, char ** argv){
         if(ok == 1){
             cont++;
             result[i]=cadena2[n];
-            printf("%d\n",result[i]);
+            //printf("%d\n",result[i]);
             i++;
             if (feof(f)){
                 aux = i;
@@ -60,3 +60,4 @@ int main(int argc, char ** argv){
     fclose(f);
     return(0);
 }
+
