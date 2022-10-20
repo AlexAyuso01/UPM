@@ -1,6 +1,13 @@
 {
     "configurations": [
         {
+            "type": "java",
+            "name": "Launch HelloWorld",
+            "request": "launch",
+            "mainClass": "HelloWorld",
+            "projectName": "UPM_c921f6d0"
+        },
+        {
             "name": "msh",
             "type": "cppdbg",
             "request": "launch",

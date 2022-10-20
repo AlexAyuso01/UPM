@@ -8,6 +8,7 @@
         "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\jcsp.jar"
     ],
     "java.project.sourcePaths": [
-        "SEGUNDO\\Concurrencia\\Practicas\\src"
+        "SEGUNDO\\Concurrencia\\Practicas\\src",
+        "TERCERO/PDL"
     ]
 }
