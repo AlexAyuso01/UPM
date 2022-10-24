@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch Ejecucion",
+            "request": "launch",
+            "mainClass": "proyecto.Ejecucion",
+            "projectName": "UPM_c921f6d0"
+        },
+        {
+            "type": "java",
             "name": "Launch HelloWorld",
             "request": "launch",
             "mainClass": "HelloWorld",
