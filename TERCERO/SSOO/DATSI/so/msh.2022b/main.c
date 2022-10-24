@@ -104,7 +104,7 @@ int esmandatointerno(int argc, char **argv){ // NO FUNCIONA AUN PERO PORQUE NO S
 	} else if (strcmp(argv[0], "exit") == 0){
 		exit(0);
 	} else if (strcmp(argv[0], "umask") == 0){
-		printf("umask: not implemented");
+		printf("umask: not implemented\n");
 		return 1;
 	} else if (strcmp(argv[0], "limit") == 0){
 		return 1;
@@ -116,7 +116,7 @@ void getCurrentDirectory(int argc, char **argv){
 	//get the current directory and store it in dir 
 	//char dir[PATH_MAX];
 	//getcwd(dir,sizeof(dir));
-	char *cwd = getcwd(NULL,NULL);
+	char *cwd = getcwd(NULL,0);
 	//concatenate the current directory with the argument
 	printf("%s\n", cwd);
 	strcat(cwd, "/");
