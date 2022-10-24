@@ -18,10 +18,16 @@ leer(): funcion que lee el caracter y avanza en el archivo.
  E210 (2->10) //SE GENERA EL TOKEN CADENALFANUMERICA
     generarToken(oc);
 
-******SEGUIR POR AQUI*******
-
  E03 (0->3)
-    generarToken()
+    c = leer(" ' ") // GENERO EL TOKEN CARACTER
+ E33 (3->3)
+    c = c ⊕ leer("c'")  // SIGO GENRENADO EL CARACTER
+ E311 (3->11)
+    c = c ⊕ leer(" ' ") // LO CIERRO 
+    generarToken(c) // GENERO EL TOKEN CARACTER
+
+******SEGUIR POR AQUI*******
+ 
  E05 (0->5)
     generarToken()
  E06 (0->6)
@@ -30,5 +36,6 @@ leer(): funcion que lee el caracter y avanza en el archivo.
     generarToken()
  E08 (0->8)
     generarToken()
+
 
  
