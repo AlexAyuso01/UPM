@@ -1,0 +1,34 @@
+----------------------------------------
+-----------AccionesSemanticas-----------
+----------------------------------------
+
+leer(): funcion que lee el caracter y avanza en el archivo.
+
+ E0-1 (0->1) //SE CREA UN ENTERO 
+    d->toInt(),
+ E1-1 (1->1) //SE SIGUE GENERANDO EL NUMERO
+    d*=10+d->toInt();
+ E1-9 (1->9) //SE GENERA EL TOKEN DIGITO
+    generarToken(d);
+
+ E02 (0->2)
+    oc = L->toString() | d->toString();
+ E22 (2->2)
+    oc = L->toString() | d*=10+d->toString();
+ E210 (2->10) //SE GENERA EL TOKEN CADENALFANUMERICA
+    generarToken(oc);
+
+******SEGUIR POR AQUI*******
+
+ E03 (0->3)
+    generarToken()
+ E05 (0->5)
+    generarToken()
+ E06 (0->6)
+    generarToken()
+ E07 (0->7)
+    generarToken()
+ E08 (0->8)
+    generarToken()
+
+ 
