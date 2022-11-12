@@ -5,10 +5,17 @@
         "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\aedlib.jar",
         "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\cclib.jar",
         "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\cclib-0.4.9.jar",
-        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\jcsp.jar"
+        "c:\\Users\\aleja\\OneDrive\\Documents\\UNI\\SEGUNDO\\Concurrencia\\.jars\\jcsp.jar",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/javax.jms.jar/javax.jms.jar",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/jar_files/imq-5.1.jar",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/jar_files/imqxm-5.1.jar",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/jar_files/javax.jms-api-2.0.jar",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/jar_files/jaxm-api-5.1.jar"
     ],
     "java.project.sourcePaths": [
-        "SEGUNDO\\Concurrencia\\Practicas\\src",
-        "TERCERO/PDL"
+        "TERCERO/PDL",
+        "SEGUNDO/Concurrencia/Practicas/src",
+        "OPTATIVAS/MIDDLEWARE/PracticaJMS/PracticaJMS-main/Practica1/src",
+        "OPTATIVAS/mq/examples/helloworld/helloworldmessage"
     ]
 }

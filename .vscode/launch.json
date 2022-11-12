@@ -2,6 +2,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch HelloWorldMessage",
+            "request": "launch",
+            "mainClass": "HelloWorldMessage",
+            "projectName": "UPM_a8cb1dd2"
+        },
+        {
+            "type": "java",
+            "name": "Launch HelloWorldClase",
+            "request": "launch",
+            "mainClass": "HelloWorldClase",
+            "projectName": "UPM_a8cb1dd2"
+        },
+        {
+            "type": "java",
+            "name": "Launch GestorFicheros",
+            "request": "launch",
+            "mainClass": "GestorFicheros",
+            "projectName": "UPM_a8cb1dd2"
+        },
+        {
+            "type": "java",
             "name": "Launch Ejecucion",
             "request": "launch",
             "mainClass": "proyecto.Ejecucion",

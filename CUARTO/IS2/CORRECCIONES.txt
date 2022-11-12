@@ -1,0 +1,41 @@
+REVISAR LOS PCS E IECS
+Los pc valen 1pto y los iec y el historial otro 
+lo demas mas o menos va sumando otro punto 
+los primeros cinco entre 5 y se suman
+los sigueintes cuatro igual se suman y se divide entre 4
+los siguientes dos igual 
+pc 1
+los dos ultimos suma y division entre 2
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+no fecha en pgcs ya estan en pc
+pequeña explicacion
+nombrado -> pcs a controlar pgcs y mas cosas que no me he enterari
+etiquetado -> nombrar identificadores y ficheros 
+versionado -> nombre de las versiones donde x se incrementa segun va evolucionando y decir dode se incrementa 
+reconocimiento -> 2.4 no ponrlo a capon lista de elementos con su acronimo y propietario explicar qu etienen las columnas 
+TABLAS CON NUMEROS Y TITULOS 
+REFERECIAS A AOTRAS TABLAS 
+Linea base(es TODO): cual es la version oficial decir que elementos del nombreado son oficiales y van a que linea base
+explicar que elemneto de configuracion va a que cosa 
+Etiquetado bien miradop
+Poner que se hace despues de la ultima actividad, inspeccion de... codigo plan de alto nivel fase-estrategia/depues de gestion...
+
+Procedimiento y facilidades ir diciendoiq ue se van haciendo backups copia de seguridad de... columnas de la tablña 
+
+CCC bien soporte (secretario) y desarrollo (presidente)
+procedimientode control contar lo de las transparencias 14,15,16 y salvedad de calidad(decir los criterios(dos inspectores 
+revisan de forma individial y se reunen con el propeietario y se rellena el logd-autor y el ins revision individual 
+y en la de inspeccion- calidad))
+elemento de oconfiguracion 19-20 mismo procedimiento que nates
+rellenar peticion de cambio en anexo x o seccio tal
+informes de estado copiar la plantilla 4.1 fichero de informe de estado en blanco tabla de la t.26 volumen y no se que de cambios 4.2 historial de versiones 
+columna con modificacion y relacionado con la peticion de cambio rellena en portada pero en blanco aqui celda 4.2 por la derecha en blanco
+
+se rellena si o se ha cerrado la semana ver peticion estado de cambio hasta que no se cierre no se puede contabilizar lineas de codigo
+valor acumulado suma de los valores de las semanas 
+
+fechas pc vas al doc pc y marcas casilla de cerrado 
+el ccc se aprueba y se cierra con la reunion final del ccc
+cuanbdo es nueva aprobda y cerrada va junta
+
