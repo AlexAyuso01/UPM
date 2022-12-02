@@ -60,9 +60,14 @@ int main(void)
  */
 		for (argvc = 0; (argv = argvv[argvc]); argvc++) {
 			for (argc = 0; argv[argc]; argc++){
-			// mirar si argumento[0] es mandato interno == 0 -> mandato entero  
-			// si no es: 
-			// como es el 
+			// mirar si es el ultimo mandato o si es mandato interno
+				if (argv[argc+1] == NULL && esmandatointerno(argc, argv) == 1){
+					getCurrentDirectory(argc, argv);
+				}
+				else{
+					printf("%s ", argv[argc]);
+				}
+			}
 			if (argv[argc] != NULL){
 				if (esmandatointerno(argc, argv) != 0){
 					wait(NULL);
