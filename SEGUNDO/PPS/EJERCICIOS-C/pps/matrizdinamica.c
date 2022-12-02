@@ -9,6 +9,14 @@ int main(int argc,  char *argv[]){
     nfilas=atoi(one);
     ncolumnas=atoi(two);
     matriz=(long int **)malloc(nfilas*sizeof(long int *));
+
+    if(matriz==NULL){
+        exit(71);
+    } 
+    if(argc != 3){
+        exit(71);
+    }
+
     for(n=0;n<nfilas;n++){
         matriz[n]=(long int*)malloc(ncolumnas*sizeof(long int));
     }
@@ -21,10 +29,6 @@ int main(int argc,  char *argv[]){
                 matriz[n][m]=matriz[n-1][m]+matriz[n][m-1];
             }
         }
-    }
-
-    if(matriz==NULL){
-        exit(71);
     }
 
     for(n=0;n<nfilas;n++){
