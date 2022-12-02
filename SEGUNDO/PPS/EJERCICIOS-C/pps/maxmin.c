@@ -1,9 +1,8 @@
-//program that reads a file and checks what are the maximum and minimum values of the numbers in the file
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char** argv){
-    FILE *f;
+    FILE *f = fopen(argv[1], "r");
     float num;
     float max = 0.00;
     float min = 0.00;
