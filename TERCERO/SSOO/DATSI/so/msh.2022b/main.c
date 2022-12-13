@@ -113,10 +113,12 @@ void getCurrentDirectory(int argc, char **argv){
 	//get the current directory and store it in dir 
 	//char dir[PATH_MAX];
 	//getcwd(dir,sizeof(dir));
+	//char *cwd = "${workspaceFolder}";
 	char *cwd = getcwd(NULL,0);
 	//concatenate the current directory with the argument
 	printf("%s\n", cwd);
 	strcat(cwd, "/");
+	printf("%s\n",cwd);
 	strcat(cwd, argv[1]);
 	//change the directory to dir
 	chdir(cwd);
