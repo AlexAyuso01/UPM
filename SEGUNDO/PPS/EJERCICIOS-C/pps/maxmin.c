@@ -6,22 +6,17 @@ int main(int argc, char** argv){
     float num;
     float max = 0.00;
     float min = 0.00;
-    int var = 0;
     if (argc != 2){
-        printf("Error: wrong number of arguments\n");
-        var = -1;
-    } else if (fopen(argv[1], "r") == NULL){
-        printf("Error opening file\n");
-        var = -1;
-    } else if (fscanf(f, "%f", &num) == EOF){
-        printf("%10.2f %10.2f\n", max, min);
-        var = 0;
-    } else {
-        fseek(f, 0, SEEK_SET);
-        fscanf(f, "%f", &num);
+        return -1;
+    } 
+    if (fopen(argv[1], "r") == NULL){
+        return -1;
+    }    
+        fseek(f,0,SEEK_SET);
+        fscanf(f,"%f",&num);
         max = num;
         min = num;
-        while (fscanf(f, "%f", &num) != EOF){
+        while (fscanf(f,"%f", &num) != EOF){
                 
             if (num > max){
                 max = num;
@@ -30,9 +25,8 @@ int main(int argc, char** argv){
                 min = num;
             }
 
-        }      
-        var = 0;
-        printf("%10.2f %10.2f\n", max, min);
-    }
-    return var;
-}
+        }
+        fclose(f);
+        printf("%10.2f %10.2f\n",max, min);
+        return 0;
+}     

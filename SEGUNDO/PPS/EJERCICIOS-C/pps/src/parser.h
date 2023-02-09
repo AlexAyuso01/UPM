@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#define MaxLinea 2048
-#define MaxCampos 15
+#ifndef PARSER_H
+#define PARSER_H
 
+int parser(const char *filepath);
 
-int parser(FILE * file);
+#endif

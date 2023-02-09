@@ -1,0 +1,5 @@
+IMEI: 639e121dd700405; Modelo: Energizer U680S; RAM: 2 GB RAM ; Bat: 7000 mAh; PVP: 1027.95€; 
+IMEI: b20bea72321a420; Modelo: TCL NxtPaper; RAM: 4 GB RAM ; Bat: 5500 mAh; PVP: 1125.85€; 
+IMEI: e0c7d410defede6; Modelo: Infinix Note 8i; RAM: 4/6 GB RAM ; Bat: 5200 mAh; PVP: 1106.27€; 
+IMEI: 1240858d963066d; Modelo: Wiko Y60; RAM: 1 GB RAM ; Bat: 2500 mAh; PVP: 939.84€; 
+IMEI: 26f414eb753b4dd; Modelo: Wiko View3 Lite; RAM: 2 GB RAM ; Bat: 4000 mAh; PVP: 939.84€; 
