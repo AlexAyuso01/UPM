@@ -3,8 +3,21 @@
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).
 
-% Autor: Alejandro Ayuso Exposito (190238)
-
+/**
+ * Predicado author_data/4
+ *
+ * @pred author_data(-Apellido, -Nombre, -Nombre2, -Codigo)
+ * @mode author_data(-, -, -, -)
+ * @type author_data(-string, -string, -string, -string)
+ *
+ * Retorna información sobre el autor.
+ *
+ * @param Apellido Apellido del autor.
+ * @param Nombre   Nombre del autor.
+ * @param Nombre2  Segundo nombre del autor.
+ * @param Codigo   Código del autor.
+ */
+author_data('Ayuso', 'Exposito', 'Alejandro', '190238').
 % Direcciones permitidas
 direcciones_permitidas([dir(n,3), dir(s,4), dir(o,2), dir(se,10)]).
 
