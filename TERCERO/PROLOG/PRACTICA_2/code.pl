@@ -3,21 +3,25 @@
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).
 
-/**
- * Autor: Alejandro Ayuso Exposito (190238)
- */
-author_data('Ayuso', 'Exposito', 'Alejandro', '190238').
+% Autor: Alejandro Ayuso Exposito (190238)
 
 % Direcciones permitidas
 direcciones_permitidas([dir(n,3), dir(s,4), dir(o,2), dir(se,10)]).
 
 /**
  * Predicado efectuar_movimiento/3
- * efectuar_movimiento(+PosicionActual, +Direccion, -NuevaPosicion)
- * Se encarga de realizar un movimiento en la dirección dada desde la posición actual.
- * PosicionActual: Posición actual en formato pos(Row, Col).
- * Direccion: Dirección en la que se realizará el movimiento.
- * NuevaPosicion: Nueva posición luego del movimiento.
+ *
+ * @pred efectuar_movimiento(+PosicionActual, +Direccion, -NuevaPosicion)
+ * @mode efectuar_movimiento(+, +, -)
+ * @type efectuar_movimiento(+pos, +atom, -pos)
+ * @error movimiento_invalido(Direccion) si la direccion no es valida para la posicion actual
+ * @error posicion_invalida(Posicion) si la posicion actual esta fuera de rango
+ *
+ * Se encarga de realizar un movimiento en la direccion dada desde la posicion actual.
+ *
+ * @param PosicionActual Posicion actual en formato pos(Row, Col).
+ * @param Direccion     Direccion en la que se realizara el movimiento.
+ * @param NuevaPosicion Nueva posicion luego del movimiento.
  */
 efectuar_movimiento(pos(Row, Col), n, pos(NewRow, Col)) :-
   NewRow is Row - 1.
@@ -42,11 +46,16 @@ efectuar_movimiento(pos(Row, Col), no, pos(NewRow, NewCol)) :-
 
 /**
  * Predicado movimiento_valido/3
- * movimiento_valido(+N, +PosicionActual, +Direccion)
- * Verifica si un movimiento en la dirección dada desde la posición actual es válido dentro de una cuadrícula de tamaño N.
- * N: Tamaño de la cuadrícula.
- * PosicionActual: Posición actual en formato pos(Row, Col).
- * Direccion: Dirección del movimiento.
+ *
+ * @pred movimiento_valido(+N, +PosicionActual, +Direccion)
+ * @mode movimiento_valido(+, +, +)
+ * @type movimiento_valido(+int, +pos, +atom)
+ *
+ * Verifica si un movimiento en la direccion dada desde la posicion actual es valido dentro de una cuadricula de tamano N.
+ *
+ * @param N              Tamano de la cuadricula.
+ * @param PosicionActual Posicion actual en formato pos(Row, Col).
+ * @param Direccion      Direccion del movimiento.
  */
 movimiento_valido(N, pos(Row, Col), Dir) :-
   efectuar_movimiento(pos(Row, Col), Dir, pos(NewRow, NewCol)),
@@ -57,9 +66,14 @@ movimiento_valido(N, pos(Row, Col), Dir) :-
 
 /**
  * Predicado board1/1
- * board1(-Board)
+ *
+ * @pred board1(-Board)
+ * @mode board1(-)
+ * @type board1(-list(cell))
+ *
  * Devuelve una lista de celdas que representan un tablero.
- * Board: Lista de celdas en el formato [cell(Posicion, Operacion), ...].
+ *
+ * @param Board Lista de celdas en el formato [cell(Posicion, Operacion), ...].
  */
 board1([
   cell(pos(1,1),op(*,-3)),
@@ -82,24 +96,36 @@ board1([
 
 /**
  * Predicado cell/4
- * cell(+Posicion, +Operacion, +Tablero, -NuevoTablero)
+ *
+ * @pred cell(+Posicion, +Operacion, +Tablero, -NuevoTablero)
+ * @mode cell(+, +, +, -)
+ * @type cell(+pos, +atom, +list(cell), -list(cell))
+ * @error celda_no_existente(Posicion, Tablero) si la celda no existe en el tablero
+ *
  * Selecciona una celda del tablero y devuelve el nuevo tablero sin la celda seleccionada.
- * Posicion: Posición de la celda en formato pos(Row, Col).
- * Operacion: Operación asociada a la celda.
- * Tablero: Tablero actual en formato de lista de celdas.
- * NuevoTablero: Nuevo tablero sin la celda seleccionada.
+ *
+ * @param Posicion    Posicion de la celda en formato pos(Row, Col).
+ * @param Operacion   Operacion asociada a la celda.
+ * @param Tablero     Tablero actual en formato de lista de celdas.
+ * @param NuevoTablero Nuevo tablero sin la celda seleccionada.
  */
 cell(pos(Row, Col), Op, Board, NewBoard) :-
   select_cell(pos(Row, Col), Op, Board, NewBoard).
 
 /**
  * Predicado select_cell/4
- * select_cell(+Posicion, +Operacion, +Tablero, -NuevoTablero)
- * Selecciona la celda con la posición y operación dadas del tablero y devuelve el nuevo tablero sin la celda seleccionada.
- * Posicion: Posición de la celda en formato pos(Row, Col).
- * Operacion: Operación asociada a la celda.
- * Tablero: Tablero actual en formato de lista de celdas.
- * NuevoTablero: Nuevo tablero sin la celda seleccionada.
+ *
+ * @pred select_cell(+Posicion, +Operacion, +Tablero, -NuevoTablero)
+ * @mode select_cell(+, +, +, -)
+ * @type select_cell(+pos, +atom, +list(cell), -list(cell))
+ * @error celda_no_existente(Posicion, Tablero) si la celda no existe en el tablero
+ *
+ * Selecciona la celda con la posicion y operacion dadas del tablero y devuelve el nuevo tablero sin la celda seleccionada.
+ *
+ * @param Posicion       Posicion de la celda en formato pos(Row, Col).
+ * @param Operacion      Operacion asociada a la celda.
+ * @param Tablero        Tablero actual en formato de lista de celdas.
+ * @param NuevoTablero   Nuevo tablero sin la celda seleccionada.
  */
 select_cell(IPos, Op, [cell(IPos, Op)|Board], Board).
 select_cell(IPos, Op, [cell(Pos, Op2)|Board], [cell(Pos, Op2)|NewBoard]) :-
@@ -107,11 +133,17 @@ select_cell(IPos, Op, [cell(Pos, Op2)|Board], [cell(Pos, Op2)|NewBoard]) :-
 
 /**
  * Predicado select_dir/3
- * select_dir(+Direccion, +Direcciones, -NuevasDirecciones)
- * Selecciona la dirección de la lista de direcciones y devuelve la lista sin la dirección seleccionada.
- * Direccion: Dirección a seleccionar.
- * Direcciones: Lista de direcciones en el formato [dir(Direccion, Numero), ...].
- * NuevasDirecciones: Nueva lista de direcciones sin la dirección seleccionada.
+ *
+ * @pred select_dir(+Direccion, +Direcciones, -NuevasDirecciones)
+ * @mode select_dir(+, +, -)
+ * @type select_dir(+atom, +list(dir), -list(dir))
+ * @error direccion_no_existente(Direccion, Direcciones) si la direccion no existe en la lista de direcciones
+ *
+ * Selecciona la direccion de la lista de direcciones y devuelve la lista sin la direccion seleccionada.
+ *
+ * @param Direccion            Direccion a seleccionar.
+ * @param Direcciones          Lista de direcciones en el formato [dir(Direccion, Numero), ...].
+ * @param NuevasDirecciones    Nueva lista de direcciones sin la direccion seleccionada.
  */
 select_dir(Dir, [dir(Dir, 1)|Dirs], Dirs).
 select_dir(Dir, [dir(Dir, Num)|Dirs], Dirs1) :-
@@ -124,11 +156,16 @@ select_dir(Dir, [dir(Dir2, Num)|Dirs], [dir(Dir2, Num)|Dirs1]) :-
 
 /**
  * Predicado aplicar_op/3
- * aplicar_op(+Operacion, +Valor, -NuevoValor)
- * Aplica una operación a un valor y devuelve el nuevo valor resultante.
- * Operacion: Operación a aplicar ('+', '-', '*', '//').
- * Valor: Valor original.
- * NuevoValor: Nuevo valor resultante de la operación.
+ *
+ * @pred aplicar_op(+Operacion, +Valor, -NuevoValor)
+ * @mode aplicar_op(+, +, -)
+ * @type aplicar_op(+atom, +int, -int)
+ *
+ * Aplica una operacion a un valor y devuelve el nuevo valor resultante.
+ *
+ * @param Operacion    Operacion a aplicar ('+', '-', '*', '//').
+ * @param Valor        Valor original.
+ * @param NuevoValor   Nuevo valor resultante de la operacion.
  */
 aplicar_op(op(Op, Operand), Value, Value2) :-
     (
@@ -140,14 +177,22 @@ aplicar_op(op(Op, Operand), Value, Value2) :-
 
 /**
  * Predicado generar_recorrido/6
- * generar_recorrido(+PosicionInicial, +N, +Tablero, +Direcciones, -Recorrido, -ValorFinal)
- * Genera un recorrido válido en el tablero comenzando desde la posición inicial y siguiendo las direcciones permitidas.
- * PosicionInicial: Posición inicial en formato pos(Row, Col).
- * N: Tamaño del tablero.
- * Tablero: Tablero actual en formato de lista de celdas.
- * Direcciones: Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
- * Recorrido: Recorrido generado en el formato [(Posicion, Valor), ...].
- * ValorFinal: Valor final del recorrido.
+ *
+ * @pred generar_recorrido(+PosicionInicial, +N, +Tablero, +Direcciones, -Recorrido, -ValorFinal)
+ * @mode generar_recorrido(+, +, +, +, -, -)
+ * @type generar_recorrido(+pos, +int, +list(cell), +list(dir), -list(pair(pos, int)), -int)
+ * @error movimiento_invalido(Direccion) si la direccion no es valida para la posicion actual
+ * @error posicion_invalida(Posicion) si la posicion actual esta fuera de rango
+ * @error celda_no_existente(Posicion, Tablero) si la celda no existe en el tablero
+ *
+ * Genera un recorrido valido en el tablero comenzando desde la posicion inicial y siguiendo las direcciones permitidas.
+ *
+ * @param PosicionInicial   Posicion inicial en formato pos(Row, Col).
+ * @param N                Tamano del tablero.
+ * @param Tablero          Tablero actual en formato de lista de celdas.
+ * @param Direcciones      Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
+ * @param Recorrido        Recorrido generado en el formato [(Posicion, Valor), ...].
+ * @param ValorFinal       Valor final del recorrido.
  */
 generar_recorrido(_, _, [], _, [], 0).
 
@@ -162,13 +207,18 @@ generar_recorrido(Ipos, N, Board, Dirs, [(Ipos, Valor)|Recorrido], ValorFinal) :
 
 /**
  * Predicado generar_recorridos/5
- * generar_recorridos(+N, +Tablero, +Direcciones, -Recorrido, -Valor)
+ *
+ * @pred generar_recorridos(+N, +Tablero, +Direcciones, -Recorrido, -Valor)
+ * @mode generar_recorridos(+, +, +, -, -)
+ * @type generar_recorridos(+int, +list(cell), +list(dir), -list(pair(pos, int)), -int)
+ *
  * Genera todos los recorridos posibles en el tablero y devuelve el recorrido con su valor correspondiente.
- * N: Tamaño del tablero.
- * Tablero: Tablero actual en formato de lista de celdas.
- * Direcciones: Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
- * Recorrido: Recorrido generado en el formato [(Posicion, Valor), ...].
- * Valor: Valor del recorrido generado.
+ *
+ * @param N              Tamano del tablero.
+ * @param Tablero        Tablero actual en formato de lista de celdas.
+ * @param Direcciones    Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
+ * @param Recorrido      Recorrido generado en el formato [(Posicion, Valor), ...].
+ * @param Valor          Valor del recorrido generado.
  */
 generar_recorridos(N, Board, Dirs, Recorrido, Valor) :-
     member(cell(Ipos, _), Board),
@@ -176,10 +226,15 @@ generar_recorridos(N, Board, Dirs, Recorrido, Valor) :-
 
 /**
  * Predicado min_list/2
- * min_list(+Lista, -Minimo)
- * Encuentra el valor mínimo en una lista de números.
- * Lista: Lista de números.
- * Minimo: Valor mínimo en la lista.
+ *
+ * @pred min_list(+Lista, -Minimo)
+ * @mode min_list(+, -)
+ * @type min_list(+list(int), -int)
+ *
+ * Encuentra el valor minimo en una lista de numeros.
+ *
+ * @param Lista  Lista de numeros.
+ * @param Minimo Valor minimo en la lista.
  */
 min_list([Min], Min).
 min_list([H|T], Min) :-
@@ -188,23 +243,28 @@ min_list([H|T], Min) :-
 
 /**
  * Predicado tablero/5
- * tablero(+N, +Tablero, +Direcciones, -ValorMinimo, -NumeroDeRutasConValorMinimo)
- * Calcula el valor mínimo y el número de rutas con valor mínimo en los recorridos posibles en el tablero.
- * N: Tamaño del tablero.
- * Tablero: Tablero actual en formato de lista de celdas.
- * Direcciones: Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
- * ValorMinimo: Valor mínimo de los recorridos.
- * NumeroDeRutasConValorMinimo: Número de rutas con el valor mínimo.
+ *
+ * @pred tablero(+N, +Tablero, +Direcciones, -ValorMinimo, -NumeroDeRutasConValorMinimo)
+ * @mode tablero(+, +, +, -, -)
+ * @type tablero(+int, +list(cell), +list(dir), -int, -int)
+ *
+ * Calcula el valor minimo y el numero de rutas con valor minimo en los recorridos posibles en el tablero.
+ *
+ * @param N                          Tamano del tablero.
+ * @param Tablero                    Tablero actual en formato de lista de celdas.
+ * @param Direcciones                Lista de direcciones permitidas en el formato [dir(Direccion, Numero), ...].
+ * @param ValorMinimo                Valor minimo de los recorridos.
+ * @param NumeroDeRutasConValorMinimo Numero de rutas con el valor minimo.
  */
 tablero(N, Board, Dirs, ValorMinimo, NumeroDeRutasConValorMinimo) :-
     % Generar una lista de todos los valores posibles
     findall(Valor, generar_recorridos(N, Board, Dirs, _, Valor), Valores),
-    
-    % Encontrar el valor mínimo
+
+    % Encontrar el valor minimo
     min_list(Valores, ValorMinimo),
-    
-    % Generar una lista de todos los valores que son iguales al valor mínimo
+
+    % Generar una lista de todos los valores que son iguales al valor minimo
     findall(ValorMinimo, member(ValorMinimo, Valores), ValoresMinimos),
-    
-    % Contar cuántos valores mínimos hay
+
+    % Contar cuantos valores minimos hay
     length(ValoresMinimos, NumeroDeRutasConValorMinimo).
